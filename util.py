@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 import os
 import re
@@ -43,8 +43,14 @@ def concatenate_images(images):
         (0, 0, 500, 50), radius=20)
 
     width = 0
-    for image_to_paste in images:
+    for index, image_to_paste in enumerate(images, start=1):
+        font = ImageFont.truetype("arial.ttf", 13)
+        draw = ImageDraw.Draw(image_to_paste)
+        draw.text((10, 10), f"{index}", font=font,
+                  stroke_width=1, stroke_fill="white")
+
         image.paste(image_to_paste, (width, 0))
+
         width += 50
 
     image.save("palette.png", "PNG")
