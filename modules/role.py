@@ -35,7 +35,7 @@ class Role(commands.Cog):
             Role.connection.commit()
             update_role_position("increment")
 
-            await ctx.respond(f"**{name}** created and assigned to you")
+            await ctx.respond(f"**{name}** created and assigned to you ✨")
             return
 
         role = ctx.guild.get_role(int(maaldar_user[1]))
