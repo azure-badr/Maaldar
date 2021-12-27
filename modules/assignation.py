@@ -37,7 +37,7 @@ class Assignation(commands.Cog):
 
     @maaldar.command()
     @permissions.has_any_role(*configuration["role_ids"])
-    async def unassign(ctx, assignee: Option(discord.Member, "Unassigns your role from someone", required=False) = None):
+    async def unassign(ctx, user: Option(discord.Member, "Unassigns your role from user", required=False) = None):
         """Unassigns your role from you"""
 
         maaldar_user = check_if_user_exists(Assignation.cursor, ctx.author.id)
@@ -48,13 +48,13 @@ class Assignation(commands.Cog):
 
         role = ctx.guild.get_role(int(maaldar_user[1]))
 
-        if not assignee:
+        if not user:
             await ctx.author.remove_roles(role)
             await ctx.respond(f"Role unassigned from you")
             return
 
-        await assignee.remove_roles(role)
-        await ctx.respond(f"Role unassigned from **{assignee.name}**")
+        await user.remove_roles(role)
+        await ctx.respond(f"Role unassigned from **{user.name}**")
 
 
 class Dropdown(discord.ui.Select):
