@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord.commands import permissions, Option
 
-from util import configuration
+from util import configuration, check_if_user_exists
 from main import maaldar
 
 import sqlite3
@@ -22,10 +22,7 @@ class Color(commands.Cog):
 
         new_color = new_color[1:] if new_color.startswith("#") else new_color
 
-        Color.cursor.execute(
-            f"SELECT * FROM Maaldar WHERE user_id = {ctx.author.id}"
-        )
-        maaldar_user = Color.cursor.fetchone()
+        maaldar_user = check_if_user_exists(Color.cursor, ctx.author.id)
         if maaldar_user is None:
             await ctx.respond("You do not have a role yet.\n"
                               "> Make one by typing `/maaldar create`")

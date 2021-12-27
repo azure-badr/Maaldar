@@ -2,7 +2,7 @@ from sqlite3.dbapi2 import connect
 from discord.ext import commands
 from discord.commands import permissions, Option
 
-from util import configuration, update_role_position
+from util import configuration, check_if_user_exists, update_role_position
 from main import maaldar
 
 import sqlite3
@@ -22,10 +22,7 @@ class Role(commands.Cog):
             name: Option(str, "Name of your role", required=True)):
         """Creates a new role for you"""
 
-        Role.cursor.execute(
-            f"SELECT * FROM Maaldar WHERE user_id = {ctx.author.id}"
-        )
-        maaldar_user = Role.cursor.fetchone()
+        maaldar_user = check_if_user_exists(Role.cursor, ctx.author.id)
         if maaldar_user is None:
             guild = ctx.guild
             role = await guild.create_role(name=name)

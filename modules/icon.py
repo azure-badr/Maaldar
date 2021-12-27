@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord.commands import permissions, Option
 
-from util import configuration, match_url_regex
+from util import configuration, check_if_user_exists, match_url_regex
 from main import maaldar
 
 import sqlite3
@@ -21,10 +21,7 @@ class Icon(commands.Cog):
     async def icon(ctx, url: Option(str, "URL link to the icon (must be in PNG/JPG format)", required=False)):
         """Sets an icon for your role. If the url is not provided, it removes the icon"""
 
-        Icon.cursor.execute(
-            f"SELECT * FROM Maaldar WHERE user_id = {ctx.author.id}"
-        )
-        maaldar_user = Icon.cursor.fetchone()
+        maaldar_user = check_if_user_exists(Icon.cursor, ctx.author.id)
         if maaldar_user is None:
             await ctx.respond("You do not have a role yet.\n"
                               "> Make one by typing `/maaldar create`")

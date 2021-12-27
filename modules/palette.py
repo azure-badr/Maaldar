@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, tasks
 from discord.commands import permissions
 
-from util import configuration, rgb_to_hex, make_image, concatenate_images, clean_up
+from util import configuration, check_if_user_exists, rgb_to_hex, make_image, concatenate_images, clean_up
 from main import maaldar
 
 import io
@@ -35,10 +35,7 @@ class Palette(commands.Cog):
     async def palette(ctx: discord.ApplicationContext):
         """Gets a color palette for your profile picture"""
 
-        Palette.cursor.execute(
-            f"SELECT * FROM Maaldar WHERE user_id = {ctx.author.id}"
-        )
-        maaldar_user = Palette.cursor.fetchone()
+        maaldar_user = check_if_user_exists(Palette.cursor, ctx.author.id)
         if maaldar_user is None:
             await ctx.respond("You do not have a role yet.\n"
                               "> Make one by typing `/maaldar create`")
