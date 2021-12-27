@@ -42,7 +42,7 @@ class Palette(commands.Cog):
             return
 
         """Cooldown check"""
-        user_reattempt = not ctx.author.id in Palette.cooldowns
+        user_reattempt = ctx.author.id in Palette.cooldowns
 
         """Launch a cooldown on the command executing author"""
         asyncio.ensure_future(Palette.cooldown(ctx.author.id))
