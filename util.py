@@ -3,12 +3,21 @@ from PIL import Image, ImageDraw
 import os
 import re
 import json
+from sqlite3 import Cursor
 
 configuration = json.loads(
     open("config.json", 'r').read()
 )
 
 configuration["role_position"] = int(open("position.txt").read())
+
+
+def check_if_user_exists(cursor: Cursor, user_id):
+    cursor.execute(
+        f"SELECT * FROM Maaldar WHERE user_id = {user_id}"
+    )
+
+    return cursor.fetchone()
 
 
 def make_image(dominant_color):
