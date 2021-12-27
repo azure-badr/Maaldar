@@ -36,10 +36,11 @@ def clean_up():
 
 
 def concatenate_images(images):
+    """size = width of 10 images and height of 1 image"""
     image = Image.new(mode="RGBA", size=(50 * 10, 50),
                       color=(0, 0, 0, 0))
     ImageDraw.Draw(image).rounded_rectangle(
-        (0, 0, 500, 256), radius=20)
+        (0, 0, 500, 50), radius=20)
 
     width = 0
     for image_to_paste in images:
