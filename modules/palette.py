@@ -165,12 +165,7 @@ class Dropdown(discord.ui.Select):
 class DropdownView(discord.ui.View):
     def __init__(self, *args):
         super().__init__()
-
-        if len(args) == 4:
-            self.add_item(Dropdown(args[0], args[1], args[2], args[3]))
-            return
-
-        self.add_item(Dropdown(args[0], args[1], args[2]))
+        self.add_item(Dropdown(*args))
 
 
 def setup(bot):
