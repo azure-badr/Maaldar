@@ -41,11 +41,8 @@ class Palette(commands.Cog):
                               "> Make one by typing `/maaldar create`")
             return
 
-        """Cooldown checks"""
-        if ctx.author.id in Palette.cooldowns:
-            await ctx.respond("Discord ratelimits some functionalities used in this command.\n"
-                              "> You can only use this command once an hour ⌚")
-            return
+        """Cooldown check"""
+        user_reattempt = not ctx.author.id in Palette.cooldowns
 
         """Launch a cooldown on the command executing author"""
         asyncio.ensure_future(Palette.cooldown(ctx.author.id))
@@ -77,12 +74,12 @@ class Palette(commands.Cog):
         If usage is greater than 5 then use traditional method instead
         of role uploading
         """
-        if Palette.usage > 5:
+        if Palette.usage > 5 or user_reattempt:
             concatenate_images(images)
             await ctx.respond(file=discord.File("./palette.png"))
             clean_up()
 
-            view = DropdownView(hex_values, role)
+            view = DropdownView(hex_values, role, ctx.author)
             await ctx.respond("Choose the color you want", view=view)
 
             return
@@ -107,7 +104,7 @@ class Palette(commands.Cog):
                 )
             )
 
-        view = DropdownView(hex_values, added_emojis, role)
+        view = DropdownView(hex_values, added_emojis, role, ctx.author)
 
         await ctx.respond("Choose the color you want", view=view)
         for emoji in added_emojis:
@@ -124,8 +121,9 @@ class Palette(commands.Cog):
 
 class Dropdown(discord.ui.Select):
     def __init__(self, *args):
-        if len(args) == 3:
+        if len(args) == 4:
             self.role = args[2]
+            self.user = args[3]
             options = [
                 discord.SelectOption(
                     label=f"{args[0][index]}", description=f"Color #{index + 1}", emoji=emoji
@@ -133,6 +131,7 @@ class Dropdown(discord.ui.Select):
             ]
         else:
             self.role = args[1]
+            self.user = args[2]
             options = [
                 discord.SelectOption(
                     label=f"#{args[0][index]}", description=f"Color #{index + 1}"
@@ -148,16 +147,17 @@ class Dropdown(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         try:
-            await self.role.edit(
-                color=discord.Color(
-                    int(self.values[0][1:], 16)
+            if interaction.user == self.user:
+                await self.role.edit(
+                    color=discord.Color(
+                        int(self.values[0][1:], 16)
+                    )
                 )
-            )
-            await interaction.response.send_message(
-                f"Set your role color to `{self.values[0].upper()}` ✨"
-            )
+                await interaction.response.send_message(
+                    f"Set your role color to `{self.values[0].upper()}` ✨"
+                )
 
-            await self.view.stop()
+                await self.view.stop()
         except TypeError:
             pass
 
@@ -166,11 +166,11 @@ class DropdownView(discord.ui.View):
     def __init__(self, *args):
         super().__init__()
 
-        if len(args) == 3:
-            self.add_item(Dropdown(args[0], args[1], args[2]))
+        if len(args) == 4:
+            self.add_item(Dropdown(args[0], args[1], args[2], args[3]))
             return
 
-        self.add_item(Dropdown(args[0], args[1]))
+        self.add_item(Dropdown(args[0], args[1], args[2]))
 
 
 def setup(bot):
