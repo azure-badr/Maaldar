@@ -17,7 +17,6 @@ maaldar.permissions = [Permission(role_id, 1, True)
                        for role_id in configuration["role_ids"]]
 maaldar.default_permission = False
 
-print("Loading modules")
 for module in os.listdir("./modules"):
     if module.endswith(".py"):
         bot.load_extension(f"modules.{module[:-3]}")
