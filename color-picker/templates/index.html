@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maaldar Color Picker</title>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.6/jscolor.min.js"></script>
+  <script defer>
+    function handleColorChange(event) {
+      const colorPicker = document.getElementById("color-picker");
+      document.getElementById("name").style.color = colorPicker.value;
+    }
+
+    function setColor(token, roleId) {
+      const colorPicker = document.getElementById("color-picker");
+
+      fetch("/set_role_color", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          token: token,
+          role_id: roleId,
+          color: colorPicker.value
+        })
+      });
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="message-container">
+      <div class="profile-picture">
+        <img
+          width="50"
+          height="50"
+          src="{{ avatar_url }}" 
+          alt="profile_picture" />
+      </div>
+      <div class="message-box">
+        
+          <p 
+            style="color: {{ color }}"
+            id="name"
+            class="text message-name">{{ name }}</p>
+          <p class="text message-content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum, reprehenderit!</p>
+      </div>
+    </div>
+    <div class="color-container">
+      <input id="color-picker" data-jscolor="{ onInput: handleColorChange }">
+      <button 
+        onclick="setColor(
+          `{{ token }}`,
+          `{{ role_id }}`
+        )">
+      Set color
+    </button>
+    </div>
+  </div>
+  <link rel="stylesheet" href="../static/index.css">
+</body>
+</html>
