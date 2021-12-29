@@ -41,10 +41,16 @@
       </div>
       <div class="message-box">
         
-          <p 
-            style="color: {{ color }}"
-            id="name"
-            class="text message-name">{{ name }}</p>
+          <div>
+            <p 
+              style="color: {{ color }}; display: inline;"
+              id="name"
+              class="text message-name">{{ name }}
+            </p>
+            {% if role_icon != None %}
+              <img class="role-icon" src="{{ role_icon }}" />
+            {% endif %}
+          </div>
           <p class="text message-content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum, reprehenderit!</p>
       </div>
     </div>

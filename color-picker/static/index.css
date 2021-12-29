@@ -45,6 +45,13 @@ body {
   font-family: Whitney-Medium;
 }
 
+.role-icon {
+  position: relative;
+  top: 3px;
+  height: 30px;
+  margin-left: 3px;
+}
+
 .message-content {
   font-family: Whitney-Light;
 }

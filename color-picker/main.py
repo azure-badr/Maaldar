@@ -36,10 +36,12 @@ async def main_route(token):
         role_id = cursor.fetchone()[0]
         member = guild.get_member(int(maaldar_session[0]))
         role = guild.get_role(int(role_id))
+        role_icon = role.icon.url if role.icon else None
 
         return await render_template("index.html",
                                      name=member.name,
                                      avatar_url=member.avatar.url,
+                                     role_icon=role_icon,
                                      role_id=role_id,
                                      token=token,
                                      color=role.color)
