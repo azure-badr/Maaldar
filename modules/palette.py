@@ -76,11 +76,11 @@ class Palette(commands.Cog):
         """
         if Palette.usage > 5 or user_reattempt:
             concatenate_images(images)
-            await ctx.respond(file=discord.File("./palette.png"))
+            await ctx.send_followup(file=discord.File("./palette.png"))
             clean_up()
 
             view = DropdownView(hex_values, role, ctx.author)
-            await ctx.respond("Choose the color you want", view=view)
+            await ctx.send_followup("Choose the color you want", view=view)
 
             return
 
@@ -106,7 +106,7 @@ class Palette(commands.Cog):
 
         view = DropdownView(hex_values, added_emojis, role, ctx.author)
 
-        await ctx.respond("Choose the color you want", view=view)
+        await ctx.send_followup("Choose the color you want", view=view)
         for emoji in added_emojis:
             await emojis_guild.delete_emoji(emoji)
 

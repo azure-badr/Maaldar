@@ -44,14 +44,14 @@ class Icon(commands.Cog):
                 if response.status == 200:
                     try:
                         await role.edit(icon=await response.read())
-                        await ctx.respond("Role icon set ✨")
+                        await ctx.send_followup("Role icon set ✨")
                         return
 
                     except Exception as error:
-                        await ctx.respond(error)
+                        await ctx.send_followup(error)
                         return
 
-                await ctx.respond("Something is wrong with the website. Try a different one 👉")
+                await ctx.send_followup("Something is wrong with the website. Try a different one 👉")
 
 
 def setup(bot):
