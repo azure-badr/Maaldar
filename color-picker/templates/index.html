@@ -55,8 +55,18 @@
       </div>
     </div>
     <div class="color-container">
-      <input id="color-picker" data-jscolor="{ onInput: handleColorChange }">
+      <input 
+        class="color-input"
+        id="color-picker" 
+        data-jscolor="{ 
+          onInput: handleColorChange,
+          backgroundColor: '#333',
+          borderColor: '#333',
+          borderRadius: 15 
+        }"
+      >
       <button 
+        class="set-button"
         onclick="setColor(
           `{{ token }}`,
           `{{ role_id }}`

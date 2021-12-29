@@ -55,3 +55,24 @@ body {
 .message-content {
   font-family: Whitney-Light;
 }
+
+.color-input {
+  background-color: #282a2f;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  text-indent: 5px;
+  outline: none;
+}
+
+.set-button {
+  border-radius: 3px;
+  border: none;
+  color: #1f273d;
+  font-weight: bold;
+  padding: 10px;
+  background: #7288c1;
+  cursor: pointer;
+}
