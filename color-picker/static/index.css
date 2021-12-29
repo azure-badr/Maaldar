@@ -41,6 +41,10 @@ body {
   margin: 0;
 }
 
+.avatar {
+  width: 50px;
+}
+
 .message-name {
   font-family: Whitney-Medium;
 }
@@ -75,4 +79,15 @@ body {
   padding: 10px;
   background: #7288c1;
   cursor: pointer;
+}
+@media (max-width: 500px) {
+  .text {
+    font-size: 1.2rem;
+  }
+
+  .color-container {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+  }
 }
