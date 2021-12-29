@@ -150,7 +150,7 @@ class Dropdown(discord.ui.Select):
             if interaction.user == self.user:
                 await self.role.edit(
                     color=discord.Color(
-                        int(self.values[0][1:], 16)
+                        int(self.values[0], 16)
                     )
                 )
                 await interaction.response.send_message(
