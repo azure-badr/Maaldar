@@ -26,7 +26,7 @@ class Color(commands.Cog):
 
         try:
             await ctx.author.send("Session created ✨\n"
-                                  f"> http://127.0.0.1:3000/{session}")
+                                  f"> http://pakcord.mooo.com/{session}")
             """Wait for 1 hour and delete session"""
             await asyncio.sleep(3600)
             Color.cursor.execute(
