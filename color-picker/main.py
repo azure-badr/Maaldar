@@ -58,20 +58,23 @@ async def set_role_color():
     cursor.execute("SELECT * FROM MaaldarSession WHERE token = ?", (token, ))
     maaldar_session = cursor.fetchone()
     if not maaldar_session:
-        return "Invalid token"
+        return "Invalid token", 401
 
     await bot.wait_until_ready()
     guild = bot.get_guild(268597766652035072)
     role = guild.get_role(int(data["role_id"]))
     color = data["color"]
 
-    await role.edit(
+    try:
+        await role.edit(
         color=discord.Color(
             int(color[1:], 16)
+            )
         )
-    )
+    except:
+        return "Invalid color", 400
 
-    return "ok"
+    return "Role set", 200
 
 """Start bot and add it to Quart app loop"""
 bot_app = bot.start(open("./token.txt").read())

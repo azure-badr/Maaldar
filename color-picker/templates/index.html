@@ -14,6 +14,8 @@
 
     function setColor(token, roleId) {
       const colorPicker = document.getElementById("color-picker");
+      const setButton = document.getElementById("set-button");
+      setButton.setAttribute("disabled", true);
 
       fetch("/set_role_color", {
         method: "POST",
@@ -25,7 +27,28 @@
           role_id: roleId,
           color: colorPicker.value
         })
-      });
+      })
+      .then(response => {
+        const setButton = document.getElementById("set-button");
+        setTimeout(() => {
+          setButton.innerText = "Set color";
+          setButton.setAttribute("disabled", false);
+        }, 2000)
+
+        if (response.status = 200) {
+          setButton
+          setButton.innerText = "Color set!";
+          return;
+        }
+
+        if (response.status = 400) {
+          setButton.innerText = "Invalid color";
+          return;
+        }
+
+        setButton.innerText = "Invalid token";
+
+      })
     }
   </script>
 </head>
@@ -66,6 +89,7 @@
       >
       <button 
         class="set-button"
+        id="set-button"
         onclick="setColor(
           `{{ token }}`,
           `{{ role_id }}`
