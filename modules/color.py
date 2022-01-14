@@ -58,6 +58,13 @@ class Color(commands.Cog):
             return
 
         if not new_color:
+            role = ctx.guild.get_role(int(maaldar_user[1]))
+            await role.edit(color=discord.Color.default())
+            
+            await ctx.respond("Role color set to default")
+            return
+        
+            """@TODO implemenet a better system for color_picker website"""
             Color.cursor.execute(
                 "SELECT * FROM MaaldarSession WHERE user_id = ?", (ctx.author.id, ))
             maaldar_session = Color.cursor.fetchone()
