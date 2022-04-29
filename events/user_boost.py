@@ -3,8 +3,6 @@ import sqlite3
 import discord
 from discord.ext import commands
 
-from util import update_role_position
-
 
 class UserLeave(commands.Cog):
     connection = sqlite3.connect("maaldar.db")
@@ -31,8 +29,6 @@ class UserLeave(commands.Cog):
 
         role = guild.get_role(int(maaldar_user[1]))
         await role.delete()
-
-        update_role_position("decrement")
 
 
 def setup(bot):
