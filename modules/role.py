@@ -2,7 +2,7 @@ from sqlite3.dbapi2 import connect
 from discord.ext import commands
 from discord.commands import permissions, Option
 
-from util import configuration, check_if_user_exists, update_role_position
+from util import configuration, check_if_user_exists
 from main import maaldar
 
 import sqlite3
@@ -33,7 +33,6 @@ class Role(commands.Cog):
                 "INSERT INTO Maaldar VALUES (?, ?)", (ctx.author.id, role.id)
             )
             Role.connection.commit()
-            update_role_position("increment")
 
             await ctx.respond(f"**{name}** created and assigned to you ✨")
             return
