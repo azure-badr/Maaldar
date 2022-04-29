@@ -9,9 +9,6 @@ configuration = json.loads(
     open("config.json", 'r').read()
 )
 
-configuration["role_position"] = int(open("position.txt").read())
-
-
 def check_if_user_exists(cursor: Cursor, user_id):
     cursor.execute(
         f"SELECT * FROM Maaldar WHERE user_id = {user_id}"
@@ -63,13 +60,3 @@ def rgb_to_hex(rgb):
 def match_url_regex(string):
     # It works 🤷‍♀️
     return re.findall(r'(?:http\:|https\:)?\/\/.*\.(?:png|jpg)', string)
-
-
-def update_role_position(modifier):
-    if modifier == "increment":
-        configuration["role_position"] += 1
-    else:
-        configuration["role_position"] -= 1
-
-    with open("position.txt", 'w') as file:
-        file.write(str(configuration["role_position"]))
