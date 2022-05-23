@@ -24,6 +24,8 @@ class Role(commands.Cog):
 
         maaldar_user = check_if_user_exists(Role.cursor, ctx.author.id)
         if maaldar_user is None:
+            await ctx.defer()
+            
             guild = ctx.guild
             role = await guild.create_role(name=name)
             await role.edit(position=configuration["role_position"])
@@ -34,7 +36,7 @@ class Role(commands.Cog):
             )
             Role.connection.commit()
 
-            await ctx.respond(f"**{name}** created and assigned to you ✨")
+            await ctx.send_followup(f"**{name}** created and assigned to you ✨")
             return
 
         role = ctx.guild.get_role(int(maaldar_user[1]))
