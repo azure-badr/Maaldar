@@ -38,13 +38,15 @@ async def main_route(token):
         role = guild.get_role(int(role_id))
         role_icon = role.icon.url if role.icon else None
 
-        return await render_template("index.html",
-                                     name=member.name,
-                                     avatar_url=member.avatar.url,
-                                     role_icon=role_icon,
-                                     role_id=role_id,
-                                     token=token,
-                                     color=role.color)
+        return await render_template(
+            "index.html",
+            name=member.name,
+            avatar_url=member.avatar.url,
+            role_icon=role_icon,
+            role_id=role_id,
+            token=token,
+            color=role.color
+        )
 
     return f"<p>Token invalid</p>"
 
@@ -67,9 +69,7 @@ async def set_role_color():
 
     try:
         await role.edit(
-        color=discord.Color(
-            int(color[1:], 16)
-            )
+          color=discord.Color(int(color[1:], 16))
         )
     except:
         return "Invalid color", 400
