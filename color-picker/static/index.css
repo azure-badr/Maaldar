@@ -80,6 +80,7 @@ body {
   background: #7288c1;
   cursor: pointer;
 }
+
 @media (max-width: 500px) {
   .text {
     font-size: 1.2rem;
