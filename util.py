@@ -20,9 +20,11 @@ def check_if_user_exists(cursor: Cursor, user_id):
 def make_image(dominant_color):
     image = Image.new(mode="RGBA", size=(50, 50),
                       color=(0, 0, 0, 0))
-    ImageDraw.Draw(
-        image
-    ).rounded_rectangle((0, 0, 50, 50), radius=20, fill=dominant_color)
+    ImageDraw.Draw(image).rounded_rectangle(
+        (0, 0, 50, 50), 
+        radius=20,
+        fill=dominant_color
+    )
 
     return image
 
@@ -43,11 +45,15 @@ def concatenate_images(images):
     for index, image_to_paste in enumerate(images, start=1):
         font = ImageFont.truetype("arial.ttf", 13)
         draw = ImageDraw.Draw(image_to_paste)
-        draw.text((10, 10), f"{index}", font=font,
-                  stroke_width=1, stroke_fill="white")
+        draw.text(
+            (10, 10), 
+            f"{index}", 
+            font=font,
+            stroke_width=1, 
+            stroke_fill="white"
+        )
 
         image.paste(image_to_paste, (width, 0))
-
         width += 50
 
     image.save("palette.png", "PNG")
