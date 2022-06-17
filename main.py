@@ -1,30 +1,22 @@
-from discord.commands import Permission
-import os
+import discord
+from discord import app_commands
+from discord.ext import commands
 
 from util import configuration
 
-import discord
+class MaaldarBot(commands.Bot):
+    def __init__(self, intents):
+        super().__init__(command_prefix='', intents=intents)
+    
+    async def on_ready(self) -> None:
+      await self.wait_until_ready()
+      await self.tree.sync(guild=discord.Object(id=configuration["guild_id"]))
+
+    async def setup_hook(self) -> None:
+      await self.load_extension("modules.maaldar")
 
 intents = discord.Intents(members=True, guilds=True)
-bot = discord.Bot(intents=intents)
+bot = MaaldarBot(intents=intents)
 
-maaldar = bot.create_group(
-    "maaldar",
-    "Commands for the Maaldar booster role",
-    configuration["guild_ids"]
-)
-maaldar.permissions = [Permission(role_id, 1, True)
-                       for role_id in configuration["role_ids"]]
-maaldar.default_permission = False
-
-for module in os.listdir("./modules"):
-    if module.endswith(".py"):
-        bot.load_extension(f"modules.{module[:-3]}")
-        print(f"{module} loaded")
-
-for event in os.listdir("./events"):
-    if event.endswith(".py"):
-        bot.load_extension(f"events.{event[:-3]}")
-        print(f"{event} loaded")
-
-bot.run(configuration["token"])
+if __name__ == "__main__":
+  bot.run(configuration["token"])
