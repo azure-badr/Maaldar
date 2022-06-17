@@ -13,62 +13,57 @@ configuration = json.loads(
 )
 
 def check_if_user_exists(cursor: Cursor, user_id):
-    cursor.execute(
-        f"SELECT * FROM Maaldar WHERE user_id = {user_id}"
-    )
-
-    return cursor.fetchone()
-
+	cursor.execute(
+			f"SELECT * FROM Maaldar WHERE user_id = {user_id}"
+	)
+	return cursor.fetchone()
 
 def make_image(dominant_color):
-    image = Image.new(mode="RGBA", size=(50, 50),
-                      color=(0, 0, 0, 0))
-    ImageDraw.Draw(image).rounded_rectangle(
-        (0, 0, 50, 50), 
-        radius=20,
-        fill=dominant_color
-    )
+	image = Image.new(mode="RGBA", size=(50, 50),
+										color=(0, 0, 0, 0))
+	ImageDraw.Draw(image).rounded_rectangle(
+			(0, 0, 50, 50), 
+			radius=20,
+			fill=dominant_color
+	)
 
-    return image
-
+	return image
 
 def clean_up():
-    if os.path.exists("palette.png"):
-        os.remove("palette.png")
-
+	if os.path.exists("palette.png"):
+			os.remove("palette.png")
 
 def concatenate_images(images):
-    """size = width of 10 images and height of 1 image"""
-    image = Image.new(
-							mode="RGBA", size=(50 * 10, 50),
-							color=(0, 0, 0, 0)
-						)
-    ImageDraw.Draw(image).rounded_rectangle(
-        										(0, 0, 500, 50), 
-														radius=20
-													)
+	"""size = width of 10 images and height of 1 image"""
+	image = Image.new(
+		mode="RGBA", 
+		size=(50 * 10, 50),
+		color=(0, 0, 0, 0)
+	)
+	ImageDraw.Draw(image).rounded_rectangle(
+		(0, 0, 500, 50), 
+		radius=20
+	)
 
-    width = 0
-    for index, image_to_paste in enumerate(images, start=1):
-        font = ImageFont.truetype("arial.ttf", 13)
-        draw = ImageDraw.Draw(image_to_paste)
-        draw.text(
-            (10, 10), 
-            f"{index}", 
-            font=font,
-            stroke_width=1, 
-            stroke_fill="white"
-        )
+	width = 0
+	for index, image_to_paste in enumerate(images, start=1):
+		font = ImageFont.truetype("arial.ttf", 13)
+		draw = ImageDraw.Draw(image_to_paste)
+		draw.text(
+				(10, 10), 
+				f"{index}", 
+				font=font,
+				stroke_width=1, 
+				stroke_fill="white"
+		)
 
-        image.paste(image_to_paste, (width, 0))
-        width += 50
+		image.paste(image_to_paste, (width, 0))
+		width += 50
 
-    image.save("palette.png", "PNG")
-
+	image.save("palette.png", "PNG")
 
 def rgb_to_hex(rgb):
     return "%02x%02x%02x" % (rgb)
-
 
 def match_url_regex(string):
     # It works 🤷‍♀️
@@ -81,10 +76,14 @@ class Dropdown(discord.ui.Select):
 
 		options = [
 			discord.SelectOption(
-				label="Yes", description="I want the role (I love them)", emoji='✅'
+				label="Yes", 
+				description="I want the role (I love them)", 
+				emoji='✅'
 			),
 			discord.SelectOption(
-				label="No", description="I do not want the role (I hate them)", emoji='❎'
+				label="No", 
+				description="I do not want the role (I hate them)", 
+				emoji='❎'
 			)
 		]
 
