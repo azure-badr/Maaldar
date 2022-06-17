@@ -228,7 +228,7 @@ class Maaldar(commands.Cog):
   @app_commands.checks.has_any_role(
     *configuration["role_ids"]
   )
-  async def assign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
+  async def unassign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
     maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
     if maaldar_user is None:
       await interaction.response.send_message(
@@ -251,7 +251,8 @@ class Maaldar(commands.Cog):
   @role.error
   @color.error
   @icon.error
-  @assign.error
+  @assign.error 
+  @unassign.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
     if (isinstance(error, commands.MissingAnyRole)):
       await interaction.response.send_message(
