@@ -153,7 +153,7 @@ class Maaldar(commands.Cog):
     await interaction.response.defer()
     maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
     if maaldar_user is None:
-        await interaction.followup.respond(
+        await interaction.followup.send(
           "You do not have a role yet.\n"
           "> Make one by typing `/maaldar create`"
         )
@@ -162,8 +162,8 @@ class Maaldar(commands.Cog):
     role: discord.Role = interaction.guild.get_role(int(maaldar_user[1]))
 
     if not url:
-      await role.edit(icon=None)
-      await interaction.followup.respond("Role icon removed 🗑️")
+      await role.edit(display_icon=None)
+      await interaction.followup.send("Role icon removed 🗑️")
       return
 
     if not match_url_regex(url):
@@ -196,23 +196,24 @@ class Maaldar(commands.Cog):
     *configuration["role_ids"]
   )
   async def assign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
+    await interaction.response.defer()
     maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
     if maaldar_user is None:
-      await interaction.response.send_message(
+      await interaction.followup.send(
         "You do not have a role yet.\n"
         "> Make one by typing `/maaldar create`"
       )
       return
     
     role = interaction.guild.get_role(int(maaldar_user[1]))
-    if user is None:
+    if not user:
       await interaction.user.add_roles(role)
-      await interaction.response.send(f"Role assigned to you ✨")
+      await interaction.followup.send(f"Role assigned to you ✨")
 
       return
     
     view = DropdownView(user, role)
-    await interaction.response.send_message(
+    await interaction.followup.send(
       f"{user.mention}, {interaction.user.name} is trying to assign you their role", 
       view=view
     )
@@ -229,23 +230,24 @@ class Maaldar(commands.Cog):
     *configuration["role_ids"]
   )
   async def unassign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
+    await interaction.response.defer()
     maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
     if maaldar_user is None:
-      await interaction.response.send_message(
+      await interaction.followup.send(
         "You do not have a role yet.\n"
         "> Make one by typing `/maaldar create`"
       )
       return
     
     role = interaction.guild.get_role(int(maaldar_user[1]))
-    if user is None:
+    if not user:
       await interaction.user.remove_roles(role)
-      await interaction.response.send_message(f"Role unassigned from you")
+      await interaction.followup.send(f"Role unassigned from you")
 
       return
     
     await user.remove_roles(role)
-    await interaction.response.send_message(f"Role unassigned from **{user.name}**")
+    await interaction.followup.send(f"Role unassigned from **{user.name}**")
 
   @name.error
   @role.error
