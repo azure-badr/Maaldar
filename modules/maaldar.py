@@ -1,11 +1,16 @@
+import asyncio
+import io
 import sqlite3
 
 import aiohttp
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
+from modules.palette import DropdownViewPalette, Palette
 
-from util import DropdownView, configuration, check_if_user_exists, match_url_regex
+from colorthief import ColorThief
+
+from util import DropdownView, clean_up, concatenate_images, configuration, check_if_user_exists, make_image, match_url_regex, rgb_to_hex
 
 @app_commands.guild_only()
 class Maaldar(commands.Cog):
@@ -14,6 +19,7 @@ class Maaldar(commands.Cog):
   
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
+    self.palette = Palette(self.bot)
 
   maaldar_group = app_commands.Group(name="maaldar", description="Maaldar commands")
 
@@ -249,6 +255,97 @@ class Maaldar(commands.Cog):
     await user.remove_roles(role)
     await interaction.followup.send(f"Role unassigned from **{user.name}**")
 
+  "Palette Command"
+  @maaldar_group.command(
+    name="palette",
+    description="Gets a color palette for your profile picture"
+  )
+  @app_commands.checks.has_any_role(
+    *configuration["role_ids"]
+  )
+  async def palette(self, interaction: discord.Interaction) -> None:
+    await interaction.response.defer()
+    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
+    if maaldar_user is None:
+      await interaction.followup.send(
+        "You do not have a role yet.\n"
+        "> Make one by typing `/maaldar create`"
+      )
+      return
+    
+    """Cooldown check"""
+    user_reattempt = interaction.user.id in self.palette.cooldowns
+
+    """Launch a cooldown on the command executing user"""
+    asyncio.ensure_future(self.palette.cooldown(interaction.user.id))
+
+
+    """Read profile picture from avatar.url"""
+    buffer: io.BytesIO
+    async with aiohttp.ClientSession() as session:
+      async with session.get(interaction.user.avatar.url) as response:
+        if response.status == 200:
+          buffer = io.BytesIO(await response.read())
+
+    """Get color palette and make new images with them"""
+    color_palette = ColorThief(
+        buffer
+    ).get_palette(color_count=11)
+
+    hex_values = []
+    images = []
+    for dominant_color in color_palette:
+        hex_values.append(rgb_to_hex(dominant_color))
+
+        image = make_image(dominant_color)
+        images.append(image)
+
+    role = interaction.guild.get_role(int(maaldar_user[1]))
+    """
+    If usage is greater than 5 then use traditional method instead
+    of role uploading
+    """
+    if self.palette.usage > 5 or user_reattempt:
+      concatenate_images(images)
+      await interaction.followup.send(
+        file=discord.File("./palette.png")
+      )
+      clean_up()
+
+      view = DropdownViewPalette(hex_values, role, interaction.user)
+      await interaction.followup.send("Choose the color you want", view=view)
+      return
+    
+    """Convert the images to file-like objects"""
+    emojis = []
+    for image in images:
+      image_byte_array = io.BytesIO()
+      image.save(image_byte_array, "PNG")
+      emojis.append(
+          image_byte_array.getvalue())
+
+    """Add the emojis to the guild"""
+    emojis_guild: discord.Guild = interaction.client.get_guild(
+        configuration["emoji_server_id"]
+    )
+    added_emojis = []
+
+    for index, emoji in enumerate(emojis, start=0):
+      added_emojis.append(
+        await emojis_guild.create_custom_emoji(
+          name=hex_values[index], 
+          image=emoji
+        )
+      )
+
+    view = DropdownViewPalette(hex_values, added_emojis, role, interaction.user)
+    await interaction.followup.send(
+      "Choose the color you want",
+      view=view
+    )
+    for emoji in added_emojis:
+      await emojis_guild.delete_emoji(emoji)
+
   @name.error
   @role.error
   @color.error
@@ -261,6 +358,10 @@ class Maaldar(commands.Cog):
         "You need to be boosting the server to use this command", 
         ephemeral=True
       )
+  
+  @tasks.loop(seconds=3600)
+  async def reset_usage(self):
+    Maaldar.usage = 0
 
 async def setup(bot: commands.Bot):
   await bot.add_cog(Maaldar(bot), guilds=[discord.Object(id=configuration["guild_id"])])
