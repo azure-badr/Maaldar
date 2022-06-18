@@ -7,6 +7,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 from modules.palette import DropdownViewPalette, Palette
+from modules.color import Color
 
 from colorthief import ColorThief
 
@@ -346,6 +347,28 @@ class Maaldar(commands.Cog):
     )
     for emoji in added_emojis:
       await emojis_guild.delete_emoji(emoji)
+
+  "Color Picker Command"
+  @maaldar_group.command(
+    name="color-picker",
+    description="Pick a color for your role from a colour picker. (Must have DMs enabled)"
+  )
+  @app_commands.checks.has_any_role(
+    *configuration["role_ids"]
+  )
+  async def color_picker(self, interaction: discord.Interaction) -> None:
+    await interaction.response.defer()
+    Color.cursor.execute(
+        "SELECT * FROM MaaldarSession WHERE user_id = ?", (interaction.user.id, )
+    )
+    maaldar_session = Color.cursor.fetchone()
+    if not maaldar_session:
+        asyncio.ensure_future(Color.create_session(interaction))
+        return
+
+    await interaction.followup.send(f"Session already exists\n> Please check your DM")
+    return
+  
 
   @name.error
   @role.error
