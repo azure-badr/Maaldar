@@ -1,4 +1,3 @@
-from code import interact
 from PIL import Image, ImageDraw, ImageFont
 
 import os
