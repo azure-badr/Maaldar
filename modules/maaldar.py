@@ -127,7 +127,7 @@ class Maaldar(commands.Cog):
       await interaction.followup.send("Role color set to default")
       return
     
-    color = color[1:] if color.startswith("#") else new_color
+    color = color[1:] if color.startswith("#") else color
     try:
       color = int(color, 16)
     except ValueError:
