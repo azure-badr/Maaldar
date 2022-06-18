@@ -376,13 +376,16 @@ class Maaldar(commands.Cog):
   @icon.error
   @assign.error
   @unassign.error
+  @color_picker.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
-    print(error)
     if (isinstance(error, commands.MissingAnyRole)):
       await interaction.response.send_message(
         "You need to be boosting the server to use this command", 
         ephemeral=True
       )
+      return
+    
+    print(error)
   
   @tasks.loop(seconds=3600)
   async def reset_usage(self):
