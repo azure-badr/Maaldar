@@ -378,7 +378,7 @@ class Maaldar(commands.Cog):
   @unassign.error
   @color_picker.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
-    if (isinstance(error, commands.MissingAnyRole)):
+    if (isinstance(error, discord.app_commands.errors.MissingAnyRole)):
       await interaction.response.send_message(
         "You need to be boosting the server to use this command", 
         ephemeral=True
