@@ -28,6 +28,11 @@ Maaldar works with roles. You have your own role.
 <i>Give your role to your friend as well</i> <br />  
 <img src="https://user-images.githubusercontent.com/24255685/174434433-6cdadd56-a9c8-4174-91c9-fb629ab8ec94.gif" width="400px" height="400px" />  
 
+## Set your colour through a colour picker website  
+<i>Set your colour role from a session-enabled colour picker website</i> <br />
+<img src="https://user-images.githubusercontent.com/24255685/174449804-06c21dee-8fcb-4c86-af4e-6511c964b472.gif" width="400px" height="400px" />
+
+
 ## Configuration
 Fill <code>config.json</code> with the required information. <hr>
 * `guild_ids` contains all the `integer` guild IDs that you want your bot to work in.  
