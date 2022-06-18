@@ -64,37 +64,38 @@ class Maaldar(commands.Cog):
       f"Your role already exists by the name `{role.name}`\n"
       "> Assign it to yourself by typing `/maaldar assign`"
     )
-  
+ 
   """Name Command"""
   @maaldar_group.command(
-    name="name", 
+    name="name",
     description="Sets a new name for your role"
   )
   @app_commands.describe(
-    name="Name of the role"
+    new_name="Name of the role"
   )
   @app_commands.checks.has_any_role(
     *configuration["role_ids"]
   )
-  async def name(self, interaction: discord.Interaction, name: str) -> None:
-    if len(name) > 100:
-      await interaction.response.send(
+  async def name(self, interaction: discord.Interaction, new_name: str) -> None:
+    if len(new_name) > 100:
+      await interaction.followup.send(
         "🤔 I wouldn't do that\n"
         "> Role name must be fewer than 100 characters"
       )
       return
 
-    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user)
+    await interaction.response.defer()
+    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
     if maaldar_user is None:
-      await interaction.response.send(
+      await interaction.followup.send(
         "You do not have a role yet.\n"
         "> Make one by typing `/maaldar create`"
       )
       return
 
     role = interaction.guild.get_role(int(maaldar_user[1]))
-    await role.edit(name=name)
-    await interaction.response.send(f"Role name set to **{name}** ✨")
+    await role.edit(name=new_name)
+    await interaction.followup.send(f"Role name set to **{new_name}** ✨")
 
   """Color Command"""
   @maaldar_group.command(
@@ -127,14 +128,14 @@ class Maaldar(commands.Cog):
     
     color = color[1:] if color.startswith("#") else new_color
     try:
-      new_color = int(new_color, 16)
+      color = int(color, 16)
     except ValueError:
       await interaction.followup.send("Please enter the hex value for your color")
       return
 
     role = interaction.guild.get_role(int(maaldar_user[1]))
     try:
-      await role.edit(color=discord.Color(new_color))
+      await role.edit(color=discord.Color(color))
     except:
       await interaction.response.send(
         "Please enter a valid hex value\n"
@@ -350,9 +351,10 @@ class Maaldar(commands.Cog):
   @role.error
   @color.error
   @icon.error
-  @assign.error 
+  @assign.error
   @unassign.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
+    print(error)
     if (isinstance(error, commands.MissingAnyRole)):
       await interaction.response.send_message(
         "You need to be boosting the server to use this command", 
