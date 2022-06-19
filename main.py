@@ -13,6 +13,7 @@ class MaaldarBot(commands.Bot):
       await self.tree.sync(guild=discord.Object(id=configuration["guild_id"]))
 
     async def setup_hook(self) -> None:
+      await self.load_extension("events.user_boost")
       await self.load_extension("modules.maaldar")
 
 intents = discord.Intents(members=True, guilds=True)
