@@ -70,6 +70,14 @@ async def set_role_color():
   maaldar_session = cursor.fetchone()
   if not maaldar_session:
     return "Invalid token", 401
+  
+  """Validate role ID being provided in the body"""
+  user_id = maaldar_session[0]
+  cursor.execute("SELECT role_id FROM Maaldar WHERE user_id = ?", (user_id, ))
+  role_id = cursor.fetchone()[1]
+
+  if role_id != int(data["role_id"]):
+    return "Token doesn't match your role ID", 401
 
   await bot.wait_until_ready()
   guild = bot.get_guild(268597766652035072)
