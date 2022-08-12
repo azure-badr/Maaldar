@@ -90,7 +90,7 @@ class Maaldar(commands.Cog):
     if maaldar_user is None:
       await interaction.followup.send(
         "You do not have a role yet.\n"
-        "> Make one by typing `/maaldar create`"
+        "> Make one by typing `/maaldar role`"
       )
       return
 
@@ -116,7 +116,7 @@ class Maaldar(commands.Cog):
     if maaldar_user is None:
       await interaction.response.send(
         "You do not have a role yet.\n"
-        "> Make one by typing `/maaldar create`"
+        "> Make one by typing `/maaldar role`"
       )
       return
 
@@ -163,7 +163,7 @@ class Maaldar(commands.Cog):
     if maaldar_user is None:
         await interaction.followup.send(
           "You do not have a role yet.\n"
-          "> Make one by typing `/maaldar create`"
+          "> Make one by typing `/maaldar role`"
         )
         return
 
@@ -209,7 +209,7 @@ class Maaldar(commands.Cog):
     if maaldar_user is None:
       await interaction.followup.send(
         "You do not have a role yet.\n"
-        "> Make one by typing `/maaldar create`"
+        "> Make one by typing `/maaldar role`"
       )
       return
     
@@ -243,7 +243,7 @@ class Maaldar(commands.Cog):
     if maaldar_user is None:
       await interaction.followup.send(
         "You do not have a role yet.\n"
-        "> Make one by typing `/maaldar create`"
+        "> Make one by typing `/maaldar role`"
       )
       return
     
@@ -271,7 +271,7 @@ class Maaldar(commands.Cog):
     if maaldar_user is None:
       await interaction.followup.send(
         "You do not have a role yet.\n"
-        "> Make one by typing `/maaldar create`"
+        "> Make one by typing `/maaldar role`"
       )
       return
     
