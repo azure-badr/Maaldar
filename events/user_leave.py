@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 
-class UserLeave(commands.Cog):
+class UserLeaveEvent(commands.Cog):
   connection = sqlite3.connect("maaldar.db")
   cursor = connection.cursor()
 
@@ -32,4 +32,4 @@ class UserLeave(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-  await bot.add_cog(UserLeave(bot), guilds=[discord.Object(id=configuration["guild_id"])])
+  await bot.add_cog(UserLeaveEvent(bot), guilds=[discord.Object(id=configuration["guild_id"])])
