@@ -3,6 +3,7 @@ import sqlite3
 import discord
 from discord.ext import commands
 
+from util import configuration
 
 class UserLeaveEvent(commands.Cog):
   connection = sqlite3.connect("maaldar.db")
