@@ -1,6 +1,8 @@
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 
+from util import configuration
+
 import json
 import sqlite3
 import asyncio
@@ -43,7 +45,7 @@ async def main_route(token):
       f"SELECT role_id FROM Maaldar WHERE user_id = '{maaldar_session[0]}'"
     )
 
-    guild = bot.get_guild(268597766652035072)
+    guild = bot.get_guild(configuration["guild_id"])
     role_id = cursor.fetchone()[0]
     member = guild.get_member(int(maaldar_session[0]))
     role = guild.get_role(int(role_id))
@@ -81,7 +83,7 @@ async def set_role_color():
     return "Token doesn't match your role ID", 401
 
   await bot.wait_until_ready()
-  guild = bot.get_guild(268597766652035072)
+  guild = bot.get_guild(configuration["guild_id"])
   role = guild.get_role(int(data["role_id"]))
   color = data["color"]
   try:
