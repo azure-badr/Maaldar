@@ -5,6 +5,7 @@
 <code>discord.py</code>
 <code>ColorThief</code>
 <code>Pillow</code>
+<code>psycopg2</code>
 
 ## Roles  
 Maaldar works with roles. You have your own role.  
