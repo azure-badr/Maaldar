@@ -96,7 +96,7 @@ async def set_role_color():
   return "Role set", 200
 
 """Start bot and add it to Quart app loop"""
-bot_app = bot.start(open("./token.txt").read())
+bot_app = bot.start(configuration["token"])
 bot_task = asyncio.ensure_future(bot_app)
 
 """Run quart app with the Quart app loop"""
