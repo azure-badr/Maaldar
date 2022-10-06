@@ -23,7 +23,7 @@ class UserLeaveEvent(commands.Cog):
       return
 
     UserLeaveEvent.cursor.execute(
-      f"DELETE FROM Maaldar WHERE user_id = '{member.id}"
+      f"DELETE FROM Maaldar WHERE user_id = '{member.id}'"
     )
     UserLeaveEvent.connection.commit()
 

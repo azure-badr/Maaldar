@@ -5,13 +5,7 @@ from discord.commands import permissions, Option
 from util import configuration, check_if_user_exists
 from main import maaldar
 
-import sqlite3
-
-
 class Assignation(commands.Cog):
-    connection = sqlite3.connect("maaldar.db")
-    cursor = connection.cursor()
-
     def __init__(self, bot):
         self.bot = bot
 
