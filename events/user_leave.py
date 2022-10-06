@@ -1,13 +1,12 @@
-import sqlite3
-
 import discord
 from discord.ext import commands
 
 from util import configuration
+from database.db import database
 
 class UserLeaveEvent(commands.Cog):
-  connection = sqlite3.connect("maaldar.db")
-  cursor = connection.cursor()
+  connection = database.connection
+  cursor = database.cursor
 
   def __init__(self, bot):
     self.bot = bot
@@ -16,17 +15,17 @@ class UserLeaveEvent(commands.Cog):
   async def on_member_remove(self, member):
     guild: discord.Guild = member.guild
 
-    UserLeave.cursor.execute(
-      f"SELECT * FROM Maaldar WHERE user_id = {member.id}"
+    UserLeaveEvent.cursor.execute(
+      f"SELECT * FROM Maaldar WHERE user_id = '{member.id}'"
     )
-    maaldar_user = UserLeave.cursor.fetchone()
+    maaldar_user = UserLeaveEvent.cursor.fetchone()
     if maaldar_user is None:
       return
 
-    UserLeave.cursor.execute(
-      "DELETE FROM Maaldar WHERE user_id = ?", (member.id, )
+    UserLeaveEvent.cursor.execute(
+      f"DELETE FROM Maaldar WHERE user_id = '{member.id}"
     )
-    UserLeave.connection.commit()
+    UserLeaveEvent.connection.commit()
 
     role = guild.get_role(int(maaldar_user[1]))
     await role.delete()

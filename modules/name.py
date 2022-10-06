@@ -5,13 +5,7 @@ from discord.commands import permissions, Option
 from util import configuration, check_if_user_exists
 from main import maaldar
 
-import sqlite3
-
-
 class Name(commands.Cog):
-    connection = sqlite3.connect("maaldar.db")
-    cursor = connection.cursor()
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -25,7 +19,7 @@ class Name(commands.Cog):
                               "> Role name must be fewer than 100 characters")
             return
 
-        maaldar_user = check_if_user_exists(Name.cursor, ctx.author.id)
+        maaldar_user = check_if_user_exists(ctx.author.id)
         if maaldar_user is None:
             await ctx.respond("You do not have a role yet.\n"
                               "> Make one by typing `/maaldar create`")

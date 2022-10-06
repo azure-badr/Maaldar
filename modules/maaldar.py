@@ -1,6 +1,5 @@
 import asyncio
 import io
-import sqlite3
 
 import aiohttp
 import discord
@@ -12,11 +11,12 @@ from modules.color import Color
 from colorthief import ColorThief
 
 from util import DropdownView, clean_up, concatenate_images, configuration, check_if_user_exists, make_image, match_url_regex, rgb_to_hex
+from database.db import database
 
 @app_commands.guild_only()
 class Maaldar(commands.Cog):
-  connection = sqlite3.connect("maaldar.db")
-  cursor = connection.cursor()
+  connection = database.connection
+  cursor = database.cursor
   
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
@@ -39,7 +39,7 @@ class Maaldar(commands.Cog):
     await interaction.response.defer()
 
     member = interaction.user
-    maaldar_user = check_if_user_exists(Maaldar.cursor, member.id)
+    maaldar_user = check_if_user_exists(member.id)
     if maaldar_user is None:
       try:
         guild = interaction.guild
@@ -51,7 +51,7 @@ class Maaldar(commands.Cog):
         await member.add_roles(role)
 
         Maaldar.cursor.execute(
-            "INSERT INTO Maaldar VALUES (?, ?)", (member.id, role.id)
+          f"INSERT INTO Maaldar VALUES ('{member.id}', '{role.id}')"
         )
         Maaldar.connection.commit()
 
@@ -86,7 +86,7 @@ class Maaldar(commands.Cog):
       return
 
     await interaction.response.defer()
-    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
+    maaldar_user = check_if_user_exists(interaction.user.id)
     if maaldar_user is None:
       await interaction.followup.send(
         "You do not have a role yet.\n"
@@ -112,7 +112,7 @@ class Maaldar(commands.Cog):
   async def color(self, interaction: discord.Interaction, color: str = None) -> None:
     await interaction.response.defer()
 
-    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
+    maaldar_user = check_if_user_exists(interaction.user.id)
     if maaldar_user is None:
       await interaction.response.send(
         "You do not have a role yet.\n"
@@ -159,7 +159,7 @@ class Maaldar(commands.Cog):
   )
   async def icon(self, interaction: discord.Interaction, url: str = None) -> None:
     await interaction.response.defer()
-    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
+    maaldar_user = check_if_user_exists(interaction.user.id)
     if maaldar_user is None:
         await interaction.followup.send(
           "You do not have a role yet.\n"
@@ -205,7 +205,7 @@ class Maaldar(commands.Cog):
   )
   async def assign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
     await interaction.response.defer()
-    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
+    maaldar_user = check_if_user_exists(interaction.user.id)
     if maaldar_user is None:
       await interaction.followup.send(
         "You do not have a role yet.\n"
@@ -239,7 +239,7 @@ class Maaldar(commands.Cog):
   )
   async def unassign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
     await interaction.response.defer()
-    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
+    maaldar_user = check_if_user_exists(interaction.user.id)
     if maaldar_user is None:
       await interaction.followup.send(
         "You do not have a role yet.\n"
@@ -267,7 +267,7 @@ class Maaldar(commands.Cog):
   )
   async def palette(self, interaction: discord.Interaction) -> None:
     await interaction.response.defer()
-    maaldar_user = check_if_user_exists(Maaldar.cursor, interaction.user.id)
+    maaldar_user = check_if_user_exists(interaction.user.id)
     if maaldar_user is None:
       await interaction.followup.send(
         "You do not have a role yet.\n"

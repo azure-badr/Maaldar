@@ -1,13 +1,12 @@
-import sqlite3
-
 import discord
 from discord.ext import commands
-from util import configuration
 
+from util import configuration
+from database.db import database
 
 class RoleRemove(commands.Cog):
-  connection = sqlite3.connect("maaldar.db")
-  cursor = connection.cursor()
+  connection = database.connection
+  cursor = database.cursor
 
   def __init__(self, bot):
     self.bot = bot
@@ -15,14 +14,14 @@ class RoleRemove(commands.Cog):
   @commands.Cog.listener()
   async def on_guild_role_delete(self, role):
     RoleRemove.cursor.execute(
-      f"SELECT * FROM Maaldar WHERE role_id = {role.id}"
+      f"SELECT * FROM Maaldar WHERE role_id = '{role.id}'"
     )
     maaldar_role = RoleRemove.cursor.fetchone()
     if maaldar_role is None:
       return
 
     RoleRemove.cursor.execute(
-      "DELETE FROM Maaldar WHERE role_id = ?", (role.id, )
+      f"DELETE FROM Maaldar WHERE role_id = '{role.id}'"
     )
     RoleRemove.connection.commit()
     print("Deleted role from Maaldar that was manually deleted")

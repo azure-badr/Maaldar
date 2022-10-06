@@ -20,7 +20,7 @@ class Assignation(commands.Cog):
     async def assign(ctx, assignee: Option(discord.Member, "Assigns your role to someone", required=False) = None):
         """Assigns your role to you"""
 
-        maaldar_user = check_if_user_exists(Assignation.cursor, ctx.author.id)
+        maaldar_user = check_if_user_exists(ctx.author.id)
         if maaldar_user is None:
             await ctx.respond("You do not have a role yet.\n"
                               "> Make one by typing `/maaldar create`")
@@ -40,7 +40,7 @@ class Assignation(commands.Cog):
     async def unassign(ctx, user: Option(discord.Member, "Unassigns your role from user", required=False) = None):
         """Unassigns your role from you"""
 
-        maaldar_user = check_if_user_exists(Assignation.cursor, ctx.author.id)
+        maaldar_user = check_if_user_exists(ctx.author.id)
         if maaldar_user is None:
             await ctx.respond("You do not have a role yet.\n"
                               "> Make one by typing `/maaldar create`")

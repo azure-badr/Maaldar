@@ -3,14 +3,12 @@ from discord.ext import commands
 from discord.commands import permissions, Option
 
 from util import configuration, check_if_user_exists
+from database.db import database
 from main import maaldar
 
-import sqlite3
-
-
 class Role(commands.Cog):
-    connection = sqlite3.connect("maaldar.db")
-    cursor = connection.cursor()
+    connection = database.connection
+    cursor = database.cursor
 
     def __init__(self, bot):
         self.bot = bot
@@ -22,7 +20,7 @@ class Role(commands.Cog):
             name: Option(str, "Name of your role", required=True)):
         """Creates a new role for you"""
 
-        maaldar_user = check_if_user_exists(Role.cursor, ctx.author.id)
+        maaldar_user = check_if_user_exists(ctx.author.id)
         if maaldar_user is None:
             await ctx.defer()
             
@@ -32,7 +30,7 @@ class Role(commands.Cog):
             await ctx.author.add_roles(role)
 
             Role.cursor.execute(
-                "INSERT INTO Maaldar VALUES (?, ?)", (ctx.author.id, role.id)
+              f"INSERT INTO Maaldar VALUES ('{ctx.author.id}', '{role.id}')", 
             )
             Role.connection.commit()
 
