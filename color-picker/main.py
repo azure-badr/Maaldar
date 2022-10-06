@@ -27,19 +27,20 @@ intents = discord.Intents(members=True, guilds=True)
 bot = commands.Bot(command_prefix='', intents=intents)
 
 """Database initialize"""
-connection = sqlite3.connect("../maaldar.db")
-cursor = connection.cursor()
+from database.db import database
+connection = database.connection
+cursor = database.cursor
 
 """Main route"""
 @quart_app.route("/<token>")
 async def main_route(token):
   await bot.wait_until_ready()
 
-  cursor.execute("SELECT * FROM MaaldarSession WHERE token = ?", (token, ))
+  cursor.execute(f"SELECT * FROM MaaldarSession WHERE token = '{token}'")
   maaldar_session = cursor.fetchone()
   if maaldar_session:
     cursor.execute(
-        "SELECT role_id FROM Maaldar WHERE user_id = ?", (maaldar_session[0], )
+      f"SELECT role_id FROM Maaldar WHERE user_id = '{maaldar_session[0]}'"
     )
 
     guild = bot.get_guild(268597766652035072)
@@ -66,14 +67,14 @@ async def set_role_color():
   data = json.loads(bytes_data.decode("UTF-8"))
 
   token = data["token"]
-  cursor.execute("SELECT * FROM MaaldarSession WHERE token = ?", (token, ))
+  cursor.execute(f"SELECT * FROM MaaldarSession WHERE token = '{token}'")
   maaldar_session = cursor.fetchone()
   if not maaldar_session:
     return "Invalid token", 401
   
   """Validate role ID being provided in the body"""
   user_id = maaldar_session[0]
-  cursor.execute("SELECT role_id FROM Maaldar WHERE user_id = ?", (user_id, ))
+  cursor.execute(f"SELECT role_id FROM Maaldar WHERE user_id = '{user_id}'")
   role_id = cursor.fetchone()[1]
 
   if role_id != int(data["role_id"]):
