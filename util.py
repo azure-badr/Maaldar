@@ -8,8 +8,25 @@ from sqlite3 import Cursor
 import discord
 
 configuration = json.loads(
-    open("config.json", 'r').read()
+	open("config.json", 'r').read()
 )
+
+if os.environ["ENVIRONMENT"] == "PRODUCTION":
+	configuration = {
+		"staff_channel_id": os.environ["STAFF_CHANNEL_ID"],
+		"maaldar_role_id": os.environ["MAALDAR_ROLE_ID"],
+		"custom_role_id": os.environ["CUSTOM_ROLE_ID"],
+		"staff_role_id": os.environ["STAFF_ROLE_ID"],
+		"users_ids":	os.environ["USERS_IDS"].split(", "),
+		"guild_id": os.environ["GUILD_ID"],
+		"role_ids": os.environ["ROLE_IDS"].split(", "),
+		"database_name": os.environ["DATABASE_NAME"],
+		"database_user": os.environ["DATABASE_USER"],
+		"database_password": os.environ["DATABASE_PASSWORD"],
+		"database_host": os.environ["DATABASE_HOST"],
+		"database_port": os.environ["DATABASE_PORT"],
+		"token": os.environ["TOKEN"]
+	}
 
 def check_if_user_exists(cursor: Cursor, user_id):
 	cursor.execute(
