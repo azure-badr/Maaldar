@@ -1,11 +1,13 @@
-from sqlite3.dbapi2 import connect
-from discord.ext import commands
-from discord.commands import permissions, Option
-
-from util import configuration, check_if_user_exists
-from main import maaldar
-
 import sqlite3
+from sqlite3.dbapi2 import connect
+
+from discord.commands import Option
+from discord.commands import permissions
+from discord.ext import commands
+
+from main import maaldar
+from util import check_if_user_exists
+from util import configuration
 
 
 class Role(commands.Cog):
@@ -17,15 +19,13 @@ class Role(commands.Cog):
 
     @maaldar.command()
     @permissions.has_any_role(*configuration["role_ids"])
-    async def create(
-            ctx,
-            name: Option(str, "Name of your role", required=True)):
+    async def create(ctx, name: Option(str, "Name of your role", required=True)):
         """Creates a new role for you"""
 
         maaldar_user = check_if_user_exists(Role.cursor, ctx.author.id)
         if maaldar_user is None:
             await ctx.defer()
-            
+
             guild = ctx.guild
             role = await guild.create_role(name=name)
             await role.edit(position=configuration["role_position"])
@@ -40,8 +40,10 @@ class Role(commands.Cog):
             return
 
         role = ctx.guild.get_role(int(maaldar_user[1]))
-        await ctx.respond(f"Your role already exists by the name `{role.name}`\n"
-                          "> Assign it to yourself by typing `/maaldar assign`")
+        await ctx.respond(
+            f"Your role already exists by the name `{role.name}`\n"
+            "> Assign it to yourself by typing `/maaldar assign`"
+        )
 
 
 def setup(bot):

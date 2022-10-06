@@ -1,12 +1,15 @@
+import sqlite3
+
 import aiohttp
 import discord
+from discord.commands import Option
+from discord.commands import permissions
 from discord.ext import commands
-from discord.commands import permissions, Option
 
-from util import configuration, check_if_user_exists, match_url_regex
 from main import maaldar
-
-import sqlite3
+from util import check_if_user_exists
+from util import configuration
+from util import match_url_regex
 
 
 class Icon(commands.Cog):
@@ -18,13 +21,19 @@ class Icon(commands.Cog):
 
     @maaldar.command()
     @permissions.has_any_role(*configuration["role_ids"])
-    async def icon(ctx, url: Option(str, "URL link to the icon (must be in PNG/JPG format)", required=False)):
+    async def icon(
+        ctx,
+        url: Option(
+            str, "URL link to the icon (must be in PNG/JPG format)", required=False
+        ),
+    ):
         """Sets an icon for your role. If the url is not provided, it removes the icon"""
 
         maaldar_user = check_if_user_exists(Icon.cursor, ctx.author.id)
         if maaldar_user is None:
-            await ctx.respond("You do not have a role yet.\n"
-                              "> Make one by typing `/maaldar create`")
+            await ctx.respond(
+                "You do not have a role yet.\n" "> Make one by typing `/maaldar create`"
+            )
             return
 
         role: discord.Role = ctx.guild.get_role(int(maaldar_user[1]))
@@ -51,7 +60,9 @@ class Icon(commands.Cog):
                         await ctx.send_followup(error)
                         return
 
-                await ctx.send_followup("Something is wrong with the website. Try a different one 👉")
+                await ctx.send_followup(
+                    "Something is wrong with the website. Try a different one 👉"
+                )
 
 
 def setup(bot):

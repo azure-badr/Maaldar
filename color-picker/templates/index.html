@@ -58,13 +58,13 @@
       <div class="profile-picture">
         <img
           class="avatar"
-          src="{{ avatar_url }}" 
+          src="{{ avatar_url }}"
           alt="profile_picture" />
       </div>
       <div class="message-box">
-        
+
           <div>
-            <p 
+            <p
               style="color: {{ color }}; display: inline;"
               id="name"
               class="text message-name">{{ name }}
@@ -77,17 +77,17 @@
       </div>
     </div>
     <div class="color-container">
-      <input 
+      <input
         class="color-input"
-        id="color-picker" 
-        data-jscolor="{ 
+        id="color-picker"
+        data-jscolor="{
           onInput: handleColorChange,
           backgroundColor: '#333',
           borderColor: '#333',
-          borderRadius: 15 
+          borderRadius: 15
         }"
       >
-      <button 
+      <button
         class="set-button"
         id="set-button"
         onclick="setColor(

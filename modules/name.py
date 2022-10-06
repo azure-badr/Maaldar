@@ -1,11 +1,13 @@
-from sqlite3.dbapi2 import connect
-from discord.ext import commands
-from discord.commands import permissions, Option
-
-from util import configuration, check_if_user_exists
-from main import maaldar
-
 import sqlite3
+from sqlite3.dbapi2 import connect
+
+from discord.commands import Option
+from discord.commands import permissions
+from discord.ext import commands
+
+from main import maaldar
+from util import check_if_user_exists
+from util import configuration
 
 
 class Name(commands.Cog):
@@ -21,14 +23,16 @@ class Name(commands.Cog):
         """Sets a new name for your role"""
 
         if len(new_name) > 100:
-            await ctx.respond("🤔 I wouldn't do that\n"
-                              "> Role name must be fewer than 100 characters")
+            await ctx.respond(
+                "🤔 I wouldn't do that\n" "> Role name must be fewer than 100 characters"
+            )
             return
 
         maaldar_user = check_if_user_exists(Name.cursor, ctx.author.id)
         if maaldar_user is None:
-            await ctx.respond("You do not have a role yet.\n"
-                              "> Make one by typing `/maaldar create`")
+            await ctx.respond(
+                "You do not have a role yet.\n" "> Make one by typing `/maaldar create`"
+            )
             return
 
         role = ctx.guild.get_role(int(maaldar_user[1]))

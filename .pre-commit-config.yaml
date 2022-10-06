@@ -1,0 +1,25 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/timothycrosley/isort
+    rev: 5.10.1
+    hooks:
+    - id: isort
+      args: ["--sl", "--profile=black"]
+  - repo: https://github.com/psf/black
+    rev: 22.8.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: check-ast
+      - id: check-case-conflict
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        exclude: version.txt
+      - id: debug-statements
+      - id: check-added-large-files
+      - id: check-docstring-first
+      - id: check-yaml
+        exclude: conda/meta.yaml

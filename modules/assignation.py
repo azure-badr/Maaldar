@@ -1,11 +1,13 @@
-import discord
-from discord.ext import commands
-from discord.commands import permissions, Option
-
-from util import configuration, check_if_user_exists
-from main import maaldar
-
 import sqlite3
+
+import discord
+from discord.commands import Option
+from discord.commands import permissions
+from discord.ext import commands
+
+from main import maaldar
+from util import check_if_user_exists
+from util import configuration
 
 
 class Assignation(commands.Cog):
@@ -17,13 +19,19 @@ class Assignation(commands.Cog):
 
     @maaldar.command()
     @permissions.has_any_role(*configuration["role_ids"])
-    async def assign(ctx, assignee: Option(discord.Member, "Assigns your role to someone", required=False) = None):
+    async def assign(
+        ctx,
+        assignee: Option(
+            discord.Member, "Assigns your role to someone", required=False
+        ) = None,
+    ):
         """Assigns your role to you"""
 
         maaldar_user = check_if_user_exists(Assignation.cursor, ctx.author.id)
         if maaldar_user is None:
-            await ctx.respond("You do not have a role yet.\n"
-                              "> Make one by typing `/maaldar create`")
+            await ctx.respond(
+                "You do not have a role yet.\n" "> Make one by typing `/maaldar create`"
+            )
             return
 
         role = ctx.guild.get_role(int(maaldar_user[1]))
@@ -33,17 +41,26 @@ class Assignation(commands.Cog):
             return
 
         view = DropdownView(assignee, role)
-        await ctx.respond(f"{assignee.mention}, {ctx.author.name} is trying to assign you their role", view=view)
+        await ctx.respond(
+            f"{assignee.mention}, {ctx.author.name} is trying to assign you their role",
+            view=view,
+        )
 
     @maaldar.command()
     @permissions.has_any_role(*configuration["role_ids"])
-    async def unassign(ctx, user: Option(discord.Member, "Unassigns your role from user", required=False) = None):
+    async def unassign(
+        ctx,
+        user: Option(
+            discord.Member, "Unassigns your role from user", required=False
+        ) = None,
+    ):
         """Unassigns your role from you"""
 
         maaldar_user = check_if_user_exists(Assignation.cursor, ctx.author.id)
         if maaldar_user is None:
-            await ctx.respond("You do not have a role yet.\n"
-                              "> Make one by typing `/maaldar create`")
+            await ctx.respond(
+                "You do not have a role yet.\n" "> Make one by typing `/maaldar create`"
+            )
             return
 
         role = ctx.guild.get_role(int(maaldar_user[1]))
@@ -64,25 +81,29 @@ class Dropdown(discord.ui.Select):
 
         options = [
             discord.SelectOption(
-                label="Yes", description="I want the role (I love them)", emoji='✅'
+                label="Yes", description="I want the role (I love them)", emoji="✅"
             ),
             discord.SelectOption(
-                label="No", description="I do not want the role (I hate them)", emoji='❎'
-            )
+                label="No",
+                description="I do not want the role (I hate them)",
+                emoji="❎",
+            ),
         ]
 
         super().__init__(
             placeholder="Choose whether you'd like the role",
             min_values=1,
             max_values=1,
-            options=options
+            options=options,
         )
 
     async def callback(self, interaction: discord.Interaction):
         try:
             if self.values[0] == "Yes" and interaction.user == self.assignee:
                 await self.assignee.add_roles(self.role)
-                await interaction.response.send_message("The role has been assigned to you")
+                await interaction.response.send_message(
+                    "The role has been assigned to you"
+                )
 
                 await self.view.stop()
 
