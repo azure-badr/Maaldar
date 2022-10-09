@@ -48,39 +48,37 @@ class Assignation:
 
 
 class Dropdown(discord.ui.Select):
-    def __init__(self, assignee, role):
-        self.assignee = assignee
-        self.role = role
+	def __init__(self, assignee, role):
+		self.assignee = assignee
+		self.role = role
 
-        options = [
-            discord.SelectOption(
-                label="Yes", description="I want the role (I love them)", emoji='✅'
-            ),
-            discord.SelectOption(
-                label="No", description="I do not want the role (I hate them)", emoji='❎'
-            )
-        ]
+		options = [
+			discord.SelectOption(
+				label="Yes", description="I want the role (I love them)", emoji='✅'
+			),
+			discord.SelectOption(
+				label="No", description="I do not want the role (I hate them)", emoji='❎'
+			)
+		]
 
-        super().__init__(
-            placeholder="Choose whether you'd like the role",
-            min_values=1,
-            max_values=1,
-            options=options
-        )
+		super().__init__(
+			placeholder="Choose whether you'd like the role",
+			min_values=1,
+			max_values=1,
+			options=options
+		)
 
-    async def callback(self, interaction: discord.Interaction):
-        try:
-            if self.values[0] == "Yes" and interaction.user == self.assignee:
-                await self.assignee.add_roles(self.role)
-                await interaction.response.send_message("The role has been assigned to you")
+	async def callback(self, interaction: discord.Interaction):
+		try:
+			if self.values[0] == "Yes" and interaction.user == self.assignee:
+				await self.assignee.add_roles(self.role)
+				await interaction.response.send_message("The role has been assigned to you")
+				await self.view.stop()
 
-                await self.view.stop()
-
-            if self.values[0] == "No" and interaction.user == self.assignee:
-                await self.view.stop()
-
-        except TypeError:
-            pass
+			if self.values[0] == "No" and interaction.user == self.assignee:
+				await self.view.stop()
+		except TypeError:
+			pass
 
 
 class DropdownView(discord.ui.View):
