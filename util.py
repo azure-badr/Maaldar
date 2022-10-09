@@ -3,7 +3,6 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 import re
 import json
-from sqlite3 import Cursor
 
 import discord
 
@@ -28,9 +27,10 @@ if os.environ["ENVIRONMENT"] == "PRODUCTION":
 		"token": os.environ["TOKEN"]
 	}
 
-def check_if_user_exists(cursor: Cursor, user_id):
+def check_if_user_exists(user_id):
+  cursor = configuration["database"].cursor
 	cursor.execute(
-			f"SELECT * FROM Maaldar WHERE user_id = {user_id}"
+			f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'"
 	)
 	return cursor.fetchone()
 

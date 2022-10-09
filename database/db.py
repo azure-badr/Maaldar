@@ -20,6 +20,7 @@ class Database:
         port=configuration["database_port"]
       )
       self.cursor = self.connection.cursor()
+      configuration["database"] = self
     except psycopg2.ConnectionException as error:
       print("Unable to connect: ", error)
       sys.exit()
