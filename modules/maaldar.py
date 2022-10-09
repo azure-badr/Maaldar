@@ -359,7 +359,7 @@ class Maaldar(commands.Cog):
   async def color_picker(self, interaction: discord.Interaction) -> None:
     await interaction.response.defer()
     Color.cursor.execute(
-        "SELECT * FROM MaaldarSession WHERE user_id = ?", (interaction.user.id, )
+      f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'"
     )
     maaldar_session = Color.cursor.fetchone()
     if not maaldar_session:
