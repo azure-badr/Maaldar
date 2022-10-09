@@ -1,52 +1,41 @@
-import aiohttp
+from util import check_if_user_exists, match_url_regex
+
 import discord
-from discord.ext import commands
-from discord.commands import permissions, Option
 
-from util import configuration, check_if_user_exists, match_url_regex
-from main import maaldar
+import aiohttp
 
-class Icon(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class Icon:
+	async def icon(interaction: discord.Interaction, url: str = None) -> None:
+		await interaction.response.defer()
+		maaldar_user = check_if_user_exists(interaction.user.id)
+		if maaldar_user is None:
+				await interaction.followup.send(
+					"You do not have a role yet.\n"
+					"> Make one by typing `/maaldar role`"
+				)
+				return
 
-    @maaldar.command()
-    @permissions.has_any_role(*configuration["role_ids"])
-    async def icon(ctx, url: Option(str, "URL link to the icon (must be in PNG/JPG format)", required=False)):
-        """Sets an icon for your role. If the url is not provided, it removes the icon"""
+		role: discord.Role = interaction.guild.get_role(int(maaldar_user[1]))
 
-        maaldar_user = check_if_user_exists(ctx.author.id)
-        if maaldar_user is None:
-            await ctx.respond("You do not have a role yet.\n"
-                              "> Make one by typing `/maaldar create`")
-            return
+		if not url:
+			await role.edit(display_icon=None)
+			await interaction.followup.send("Role icon removed 🗑️")
+			return
 
-        role: discord.Role = ctx.guild.get_role(int(maaldar_user[1]))
+		if not match_url_regex(url):
+			await interaction.followup.send("Enter a valid URL path!\n> It must end in .png or .jpg")
+			return
 
-        if not url:
-            await role.edit(icon=None)
-            await ctx.respond("Role icon removed 🗑️")
-            return
+		async with aiohttp.ClientSession() as session:
+			async with session.get(url) as response:
+				if response.status == 200:
+					try:
+						await role.edit(display_icon=await response.read())
+						await interaction.followup.send("Role icon set ✨")
+						return
 
-        if not match_url_regex(url):
-            await ctx.respond("Enter a valid URL path!\n> It must end in .png or .jpg")
-            return
+					except Exception as error:
+						await interaction.followup.send(error)
+						return
 
-        await ctx.defer()
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    try:
-                        await role.edit(icon=await response.read())
-                        await ctx.send_followup("Role icon set ✨")
-                        return
-
-                    except Exception as error:
-                        await ctx.send_followup(error)
-                        return
-
-                await ctx.send_followup("Something is wrong with the website. Try a different one 👉")
-
-
-def setup(bot):
-    bot.add_cog(Icon(bot))
+				await interaction.followup.send("Something is wrong with the website. Try a different one 👉")

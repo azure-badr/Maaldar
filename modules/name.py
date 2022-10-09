@@ -1,35 +1,25 @@
-from sqlite3.dbapi2 import connect
-from discord.ext import commands
-from discord.commands import permissions, Option
+from util import check_if_user_exists
 
-from util import configuration, check_if_user_exists
-from main import maaldar
+import discord
 
-class Name(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+class Name:
+	async def name(interaction: discord.Interaction, new_name: str) -> None:
+		if len(new_name) > 100:
+			await interaction.followup.send(
+        "🤔 I wouldn't do that\n"
+        "> Role name must be fewer than 100 characters"
+      )
+			return
 
-    @maaldar.command()
-    @permissions.has_any_role(*configuration["role_ids"])
-    async def name(ctx, new_name: Option(str, "New name for your role", required=True)):
-        """Sets a new name for your role"""
+		await interaction.response.defer()
+		maaldar_user = check_if_user_exists(interaction.user.id)
+		if maaldar_user is None:
+			await interaction.followup.send(
+				"You do not have a role yet.\n"
+				"> Make one by typing `/maaldar role`"
+			)
+			return
 
-        if len(new_name) > 100:
-            await ctx.respond("🤔 I wouldn't do that\n"
-                              "> Role name must be fewer than 100 characters")
-            return
-
-        maaldar_user = check_if_user_exists(ctx.author.id)
-        if maaldar_user is None:
-            await ctx.respond("You do not have a role yet.\n"
-                              "> Make one by typing `/maaldar create`")
-            return
-
-        role = ctx.guild.get_role(int(maaldar_user[1]))
-        await role.edit(name=new_name)
-
-        await ctx.respond(f"Role name set to **{new_name}** ✨")
-
-
-def setup(bot):
-    bot.add_cog(Name(bot))
+		role = interaction.guild.get_role(int(maaldar_user[1]))
+		await role.edit(name=new_name)
+		await interaction.followup.send(f"Role name set to **{new_name}** ✨")
