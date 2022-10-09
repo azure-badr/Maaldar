@@ -13,8 +13,7 @@ from colorthief import ColorThief
 from util import DropdownView, clean_up, concatenate_images, configuration, check_if_user_exists, make_image, match_url_regex, rgb_to_hex
 from database.db import database
 
-@app_commands.guild_only()
-class Maaldar(commands.Cog):
+class Maaldar(commands.GroupCog, name="maaldar"):
   connection = database.connection
   cursor = database.cursor
   
@@ -22,10 +21,8 @@ class Maaldar(commands.Cog):
     self.bot = bot
     self.palette = Palette(self.bot)
 
-  maaldar_group = app_commands.Group(name="maaldar", description="Maaldar commands")
-
   """ Role Command """
-  @maaldar_group.command(
+  @app_commands.command(
     name="role", 
     description="Creates a new role for you"
   )
@@ -67,7 +64,7 @@ class Maaldar(commands.Cog):
     )
  
   """Name Command"""
-  @maaldar_group.command(
+  @app_commands.command(
     name="name",
     description="Sets a new name for your role"
   )
@@ -99,7 +96,7 @@ class Maaldar(commands.Cog):
     await interaction.followup.send(f"Role name set to **{new_name}** ✨")
 
   """Color Command"""
-  @maaldar_group.command(
+  @app_commands.command(
     name="color", 
     description="Sets a new color for your role. Specifying no option resets your color"
   )
@@ -147,7 +144,7 @@ class Maaldar(commands.Cog):
     await interaction.followup.send(f"New role color set ✨")
 
   """Icon Command"""
-  @maaldar_group.command(
+  @app_commands.command(
     name="icon", 
     description="Sets an icon for your role. If the url is not provided, it removes the icon"
   )
@@ -193,7 +190,7 @@ class Maaldar(commands.Cog):
         await interaction.followup.send("Something is wrong with the website. Try a different one 👉")
   
   "Assignation Command"
-  @maaldar_group.command(
+  @app_commands.command(
     name="assign", 
     description="Assigns your role to you"
   )
@@ -227,7 +224,7 @@ class Maaldar(commands.Cog):
     )
   
   "Unassign Command"
-  @maaldar_group.command(
+  @app_commands.command(
     name="unassign", 
     description="Unassigns your role from you"
   )
@@ -258,7 +255,7 @@ class Maaldar(commands.Cog):
     await interaction.followup.send(f"Role unassigned from **{user.name}**")
 
   "Palette Command"
-  @maaldar_group.command(
+  @app_commands.command(
     name="palette",
     description="Gets a color palette for your profile picture"
   )
@@ -349,7 +346,7 @@ class Maaldar(commands.Cog):
       await emojis_guild.delete_emoji(emoji)
 
   "Color Picker Command"
-  @maaldar_group.command(
+  @app_commands.command(
     name="color-picker",
     description="Pick a color for your role from a colour picker. (Must have DMs enabled)"
   )
