@@ -69,16 +69,18 @@ class Dropdown(discord.ui.Select):
 		)
 
 	async def callback(self, interaction: discord.Interaction):
-		try:
-			if self.values[0] == "Yes" and interaction.user == self.assignee:
-				await self.assignee.add_roles(self.role)
-				await interaction.response.send_message("The role has been assigned to you")
-				await self.view.stop()
+		if not interaction.user == self.assignee:
+			await interaction.response.send_message("You're not the one they're giving the role to, chief.", ephemeral=True)
+			return
 
-			if self.values[0] == "No" and interaction.user == self.assignee:
-				await self.view.stop()
-		except TypeError:
-			pass
+		if self.values[0] == "Yes":
+			await self.assignee.add_roles(self.role)
+			await interaction.response.send_message("The role has been assigned to you ✨")
+		
+		if self.values[0] == "No":
+			await interaction.response.send_message("They won't know you did that. Keep it a secret 🤫", ephemeral=True)
+
+		self.view.stop()
 
 
 class DropdownView(discord.ui.View):
