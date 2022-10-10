@@ -145,9 +145,9 @@ class Maaldar(commands.GroupCog, name="maaldar"):
       await interaction.response.send_message(error)
       return
 
-    if (isinstance(error, discord.app_commands.errors.MissingAnyRole)):
+    if isinstance(error, discord.app_commands.errors.MissingAnyRole):
       await interaction.response.send_message(
-        "You need to be boosting the server to use this command", 
+        "You need to be boosting the server to use this command 🪙", 
         ephemeral=True
       )
       return
