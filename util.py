@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import json
@@ -45,10 +46,6 @@ def make_image(dominant_color):
 	)
 	return image
 
-def clean_up():
-	if os.path.exists("palette.png"):
-		os.remove("palette.png")
-
 def concatenate_images(images):
 	# size = width of 10 images and height of 1 image
 	image = Image.new(
@@ -76,7 +73,11 @@ def concatenate_images(images):
 		image.paste(image_to_paste, (width, 0))
 		width += 50
 
-	image.save("palette.png", "PNG")
+	bytes_array = io.BytesIO()
+	image.save(bytes_array, format="PNG")
+	bytes_array.seek(0)
+
+	return bytes_array
 
 def rgb_to_hex(rgb):
 	return "%02x%02x%02x" % (rgb)

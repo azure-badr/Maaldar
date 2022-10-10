@@ -1,4 +1,4 @@
-from util import configuration, get_maaldar_user, clean_up, concatenate_images, make_image, rgb_to_hex
+from util import configuration, get_maaldar_user, concatenate_images, make_image, rgb_to_hex
 
 import discord
 from discord.ext import tasks
@@ -49,11 +49,10 @@ class Palette:
     of role uploading
     """
     if Palette.usage > 5 or user_reattempt:
-      concatenate_images(images)
+      image_bytes = concatenate_images(images)
       await interaction.followup.send(
-        file=discord.File("./palette.png")
+        file=discord.File(fp=image_bytes, filename="palette.png")
       )
-      clean_up()
 
       view = DropdownViewPalette(hex_values, role, interaction.user)
       await interaction.followup.send("Choose the color you want", view=view)
