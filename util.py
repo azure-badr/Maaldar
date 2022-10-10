@@ -1,10 +1,8 @@
-from PIL import Image, ImageDraw, ImageFont
-
 import os
 import re
 import json
 
-import discord
+from PIL import Image, ImageDraw, ImageFont
 
 configuration = json.loads(
 	open("config.json", 'r').read()
@@ -35,22 +33,24 @@ def get_maaldar_user(user_id):
 	return cursor.fetchone()
 
 def make_image(dominant_color):
-	image = Image.new(mode="RGBA", size=(50, 50),
-										color=(0, 0, 0, 0))
-	ImageDraw.Draw(image).rounded_rectangle(
-			(0, 0, 50, 50), 
-			radius=20,
-			fill=dominant_color
+	image = Image.new(
+		mode="RGBA", 
+		size=(50, 50),
+		color=(0, 0, 0, 0)
 	)
-
+	ImageDraw.Draw(image).rounded_rectangle(
+		(0, 0, 50, 50), 
+		radius=20,
+		fill=dominant_color
+	)
 	return image
 
 def clean_up():
 	if os.path.exists("palette.png"):
-			os.remove("palette.png")
+		os.remove("palette.png")
 
 def concatenate_images(images):
-	"""size = width of 10 images and height of 1 image"""
+	# size = width of 10 images and height of 1 image
 	image = Image.new(
 		mode="RGBA", 
 		size=(50 * 10, 50),
@@ -66,11 +66,11 @@ def concatenate_images(images):
 		font = ImageFont.truetype("arial.ttf", 13)
 		draw = ImageDraw.Draw(image_to_paste)
 		draw.text(
-				(10, 10), 
-				f"{index}", 
-				font=font,
-				stroke_width=1, 
-				stroke_fill="white"
+			(10, 10), 
+			f"{index}", 
+			font=font,
+			stroke_width=1, 
+			stroke_fill="white"
 		)
 
 		image.paste(image_to_paste, (width, 0))
@@ -79,8 +79,8 @@ def concatenate_images(images):
 	image.save("palette.png", "PNG")
 
 def rgb_to_hex(rgb):
-    return "%02x%02x%02x" % (rgb)
+	return "%02x%02x%02x" % (rgb)
 
 def match_url_regex(string):
-    # It works 🤷‍♀️
-    return re.findall(r'(?:http\:|https\:)?\/\/.*\.(?:png|jpg)', string)
+	# It works 🤷‍♀️
+	return re.findall(r'(?:http\:|https\:)?\/\/.*\.(?:png|jpg)', string)
