@@ -1,18 +1,11 @@
-from util import check_if_user_exists
+from util import get_maaldar_user
 
 import discord
 
 class Assignation:
 	async def assign(interaction: discord.Interaction, user: discord.Member = None) -> None:
 		await interaction.response.defer()
-		maaldar_user = check_if_user_exists(interaction.user.id)
-		if maaldar_user is None:
-			await interaction.followup.send(
-					"You do not have a role yet.\n"
-					"> Make one by typing `/maaldar role`"
-			)
-			return
-		
+		maaldar_user = get_maaldar_user(interaction.user.id)
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		if not user:
 			await interaction.user.add_roles(role)
@@ -28,14 +21,7 @@ class Assignation:
 
 	async def unassign(interaction: discord.Interaction, user: discord.Member = None) -> None:
 		await interaction.response.defer()
-		maaldar_user = check_if_user_exists(interaction.user.id)
-		if maaldar_user is None:
-			await interaction.followup.send(
-				"You do not have a role yet.\n"
-				"> Make one by typing `/maaldar role`"
-			)
-			return
-		
+		maaldar_user = get_maaldar_user(interaction.user.id)
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		if not user:
 			await interaction.user.remove_roles(role)

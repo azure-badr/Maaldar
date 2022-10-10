@@ -1,4 +1,4 @@
-from util import check_if_user_exists, match_url_regex
+from util import get_maaldar_user, match_url_regex
 
 import discord
 
@@ -7,14 +7,7 @@ import aiohttp
 class Icon:
 	async def icon(interaction: discord.Interaction, url: str = None) -> None:
 		await interaction.response.defer()
-		maaldar_user = check_if_user_exists(interaction.user.id)
-		if maaldar_user is None:
-				await interaction.followup.send(
-					"You do not have a role yet.\n"
-					"> Make one by typing `/maaldar role`"
-				)
-				return
-
+		maaldar_user = get_maaldar_user(interaction.user.id)
 		role: discord.Role = interaction.guild.get_role(int(maaldar_user[1]))
 
 		if not url:

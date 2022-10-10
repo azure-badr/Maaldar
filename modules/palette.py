@@ -1,4 +1,4 @@
-from util import configuration, check_if_user_exists, clean_up, concatenate_images, make_image, rgb_to_hex
+from util import configuration, get_maaldar_user, clean_up, concatenate_images, make_image, rgb_to_hex
 
 import discord
 from discord.ext import tasks
@@ -17,14 +17,8 @@ class Palette:
   
   async def palette(interaction: discord.Interaction) -> None:
     await interaction.response.defer()
-    maaldar_user = check_if_user_exists(interaction.user.id)
-    if maaldar_user is None:
-      await interaction.followup.send(
-        "You do not have a role yet.\n"
-        "> Make one by typing `/maaldar role`"
-      )
-      return
-  
+    maaldar_user = get_maaldar_user(interaction.user.id)
+    
     # Cooldown check
     user_reattempt = interaction.user.id in Palette.cooldowns
 

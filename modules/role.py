@@ -1,4 +1,4 @@
-from util import configuration, check_if_user_exists
+from util import configuration, get_maaldar_user
 from database.db import database
 
 import discord
@@ -11,7 +11,7 @@ class Role:
 		await interaction.response.defer()
 
 		member = interaction.user
-		maaldar_user = check_if_user_exists(member.id)
+		maaldar_user = get_maaldar_user(member.id)
 		if maaldar_user is None:
 			guild = interaction.guild
 
@@ -34,7 +34,6 @@ class Role:
 			f"Your role already exists by the name `{role.name}`\n"
 			"> Assign it to yourself by typing `/maaldar assign`"
 		)
-
 
 def setup(bot):
 	bot.add_cog(Role(bot))

@@ -27,8 +27,8 @@ if os.environ["ENVIRONMENT"] == "PRODUCTION":
 		"token": os.environ["TOKEN"]
 	}
 
-def check_if_user_exists(user_id):
-  cursor = configuration["database"].cursor
+def get_maaldar_user(user_id):
+	cursor = configuration["database"].cursor
 	cursor.execute(
 			f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'"
 	)

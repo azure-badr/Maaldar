@@ -1,4 +1,4 @@
-from util import check_if_user_exists
+from util import get_maaldar_user
 
 import discord
 
@@ -12,14 +12,7 @@ class Name:
 			return
 
 		await interaction.response.defer()
-		maaldar_user = check_if_user_exists(interaction.user.id)
-		if maaldar_user is None:
-			await interaction.followup.send(
-				"You do not have a role yet.\n"
-				"> Make one by typing `/maaldar role`"
-			)
-			return
-
+		maaldar_user = get_maaldar_user(interaction.user.id)
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		await role.edit(name=new_name)
 		await interaction.followup.send(f"Role name set to **{new_name}** ✨")

@@ -1,5 +1,5 @@
 from database.db import database
-from util import check_if_user_exists
+from util import get_maaldar_user
 
 import discord
 
@@ -13,13 +13,7 @@ class Color:
   async def color(interaction: discord.Interaction, color: str = None) -> None:
     await interaction.response.defer()
 
-    maaldar_user = check_if_user_exists(interaction.user.id)
-    if maaldar_user is None:
-      await interaction.response.send(
-        "You do not have a role yet.\n"
-        "> Make one by typing `/maaldar role`"
-      )
-      return
+    maaldar_user = get_maaldar_user(interaction.user.id)
 
     if color is None:
       role = interaction.guild.get_role(int(maaldar_user[1]))

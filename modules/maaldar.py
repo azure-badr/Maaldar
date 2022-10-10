@@ -10,7 +10,7 @@ from modules.name import Name
 from modules.icon import Icon
 
 from database.db import database
-from util import configuration
+from util import get_maaldar_user, configuration
 
 class Maaldar(commands.GroupCog, name="maaldar"):
   connection = database.connection
@@ -18,6 +18,22 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
+  
+  class NoCustomRole(app_commands.CheckFailure):
+    pass
+
+  def has_custom_role():
+    async def predicate(interaction: discord.Interaction):
+      maaldar_user = get_maaldar_user(interaction.user.id)
+      if maaldar_user is None:
+        raise Maaldar.NoCustomRole(
+          "You do not have a role yet!\n"
+          "Make one by typing `/maaldar role`"
+        )
+      
+      return True
+
+    return app_commands.check(predicate)
 
   # Role Command
   @app_commands.command(
@@ -30,7 +46,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   async def _role(self, interaction: discord.Interaction, name: str) -> None:
     await Role.role(interaction=interaction, name=name)
- 
+
   # Name Command
   @app_commands.command(
     name="name",
@@ -40,6 +56,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     new_name="Name of the role"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
   async def _name(self, interaction: discord.Interaction, new_name: str) -> None:
     await Name.name(interaction=interaction, new_name=new_name)
 
@@ -52,6 +69,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     color="New color for your role (e.g #000000)"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
   async def _color(self, interaction: discord.Interaction, color: str = None) -> None:
     await Color.color(interaction=interaction, color=color)
 
@@ -64,7 +82,8 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     url="URL link to the icon (must be in PNG/JPG format)"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
-  async def icon(self, interaction: discord.Interaction, url: str = None) -> None:
+  @has_custom_role()
+  async def _icon(self, interaction: discord.Interaction, url: str = None) -> None:
     await Icon.icon(interaction=interaction, url=url)
   
   # Assign Command
@@ -76,6 +95,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     user="User to assign the role to"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
   async def _assign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
     await Assignation.assign(interaction=interaction, user=user)
   
@@ -88,6 +108,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     user="User to unassign the role from"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
   async def _unassign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
     await Assignation.unassign(interaction=interaction, user=user)
 
@@ -97,7 +118,8 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     description="Gets a color palette for your profile picture"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
-  async def palette(self, interaction: discord.Interaction) -> None:
+  @has_custom_role()
+  async def _palette(self, interaction: discord.Interaction) -> None:
     await Palette.palette(interaction=interaction)
 
   "Color Picker Command"
@@ -106,25 +128,29 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     description="Pick a color for your role from a colour picker. (Must have DMs enabled)"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
   async def _color_picker(self, interaction: discord.Interaction) -> None:
     await Color.color_picker(interaction=interaction)
   
   @_name.error
   @_role.error
   @_color.error
-  @icon.error
+  @_icon.error
   @_assign.error
   @_unassign.error
   @_color_picker.error
+  @_palette.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
+    if isinstance(error, Maaldar.NoCustomRole):
+      await interaction.response.send_message(error)
+      return
+
     if (isinstance(error, discord.app_commands.errors.MissingAnyRole)):
       await interaction.response.send_message(
         "You need to be boosting the server to use this command", 
         ephemeral=True
       )
       return
-    
-    print(error)
 
 async def setup(bot: commands.Bot):
   await bot.add_cog(Maaldar(bot), guilds=[discord.Object(id=configuration["guild_id"])])
