@@ -26,9 +26,10 @@ class Palette:
     asyncio.ensure_future(Palette.cooldown(interaction.user.id))
 
     # Read profile picture from avatar.url
+    user_avatar_url = interaction.user.guild_avatar.url if interaction.user.guild_avatar else interaction.user.avatar.url
     buffer: io.BytesIO
     async with aiohttp.ClientSession() as session:
-      async with session.get(interaction.user.avatar.url) as response:
+      async with session.get(user_avatar_url) as response:
         if response.status == 200:
           buffer = io.BytesIO(await response.read())
 
