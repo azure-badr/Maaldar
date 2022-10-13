@@ -13,13 +13,16 @@ class Icon:
 		if not url and not attachment:
 			await role.edit(display_icon=None)
 			await interaction.followup.send("Role icon removed 🗑️")
-			
 			return
 		
 		# If the attachment is provided, use that
 		# NOTE: If the attachment and url are both provided, the attachment is given priority
 		if attachment:
 			try:
+				if not attachment.content_type.startswith("image/"):
+					await interaction.followup.send("The attachment must be an image! 🖼", ephemeral=True)
+					return
+				
 				await role.edit(display_icon=await attachment.read())
 				await interaction.followup.send("Role icon set ✨")
 			except Exception as error:
