@@ -76,15 +76,16 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   # Icon Command
   @app_commands.command(
     name="icon", 
-    description="Sets an icon for your role. If the url is not provided, it removes the icon"
+    description="Sets an icon for your role. If the url and attachment are not provided, it removes the icon"
   )
   @app_commands.describe(
+    attachment="Image to be used as the icon",
     url="URL link to the icon (must be in PNG/JPG format)"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
-  async def _icon(self, interaction: discord.Interaction, url: str = None) -> None:
-    await Icon.icon(interaction=interaction, url=url)
+  async def _icon(self, interaction: discord.Interaction, attachment: discord.Attachment = None, url: str = None) -> None:
+    await Icon.icon(interaction=interaction, attachment=attachment, url=url)
   
   # Assign Command
   @app_commands.command(
