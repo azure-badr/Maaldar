@@ -1,9 +1,14 @@
 import io
 import os
 import re
+import sys
 import json
 
 from PIL import Image, ImageDraw, ImageFont
+
+if not os.path.exists("./config.json"):
+	print("The config.json file has not been setup. Please set it up before proceeding")
+	sys.exit()
 
 configuration = json.loads(
 	open("config.json", 'r').read()
@@ -11,11 +16,8 @@ configuration = json.loads(
 
 if os.environ["ENVIRONMENT"] == "PRODUCTION":
 	configuration = {
-		"staff_channel_id": os.environ["STAFF_CHANNEL_ID"],
-		"maaldar_role_id": os.environ["MAALDAR_ROLE_ID"],
 		"custom_role_id": os.environ["CUSTOM_ROLE_ID"],
 		"staff_role_id": os.environ["STAFF_ROLE_ID"],
-		"users_ids":	os.environ["USERS_IDS"].split(", "),
 		"guild_id": os.environ["GUILD_ID"],
 		"role_ids": os.environ["ROLE_IDS"].split(", "),
 		"database_name": os.environ["DATABASE_NAME"],
