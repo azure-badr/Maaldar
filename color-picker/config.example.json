@@ -1,0 +1,9 @@
+{
+  "guild_id": "Server ID",
+  "token": "Bot token",
+  "database_name": "",
+  "database_user": "",
+  "database_password": "",
+  "database_host": "",
+  "database_port": "Database port [Integer]"
+}
