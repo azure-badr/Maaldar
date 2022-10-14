@@ -110,4 +110,6 @@ bot_task = asyncio.ensure_future(bot_app)
 
 # Run quart app with the Quart app loop
 # quart_app.run(loop=quart_event_loop, port=3000)
-quart_event_loop.run_until_complete(serve(quart_app, Config()))
+config = Config()
+config.bind = ["0.0.0.0:8080"]
+quart_event_loop.run_until_complete(serve(quart_app, config))
