@@ -14,19 +14,22 @@ configuration = json.loads(
 	open("config.json", 'r').read()
 )
 
-if os.environ["ENVIRONMENT"] == "PRODUCTION":
-	configuration = {
-		"custom_role_id": os.environ["CUSTOM_ROLE_ID"],
-		"staff_role_id": os.environ["STAFF_ROLE_ID"],
-		"guild_id": os.environ["GUILD_ID"],
-		"role_ids": os.environ["ROLE_IDS"].split(", "),
-		"database_name": os.environ["DATABASE_NAME"],
-		"database_user": os.environ["DATABASE_USER"],
-		"database_password": os.environ["DATABASE_PASSWORD"],
-		"database_host": os.environ["DATABASE_HOST"],
-		"database_port": os.environ["DATABASE_PORT"],
-		"token": os.environ["TOKEN"]
-	}
+try:
+	if os.environ["ENVIRONMENT"] == "PRODUCTION":
+		configuration = {
+			"custom_role_id": os.environ["CUSTOM_ROLE_ID"],
+			"staff_role_id": os.environ["STAFF_ROLE_ID"],
+			"guild_id": os.environ["GUILD_ID"],
+			"role_ids": os.environ["ROLE_IDS"].split(", "),
+			"database_name": os.environ["DATABASE_NAME"],
+			"database_user": os.environ["DATABASE_USER"],
+			"database_password": os.environ["DATABASE_PASSWORD"],
+			"database_host": os.environ["DATABASE_HOST"],
+			"database_port": os.environ["DATABASE_PORT"],
+			"token": os.environ["TOKEN"]
+		}
+except KeyError:
+	pass
 
 def get_maaldar_user(user_id):
 	cursor = configuration["database"].cursor
