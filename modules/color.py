@@ -78,6 +78,6 @@ class Color:
     except discord.Forbidden:
       await interaction.followup.send("Please enable your DMs")
       Color.cursor.execute(
-          "DELETE FROM MaaldarSession WHERE user_id = ?", (interaction.user.id, )
+        "DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'"
       )
       Color.connection.commit()
