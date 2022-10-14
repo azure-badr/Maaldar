@@ -66,7 +66,7 @@ class Color:
     try:
       await interaction.user.send(
         "Session created ✨\n"
-        f"> http://pakcord.mooo.com/{session}"
+        f"> https://pakcord-color-picker.fly.dev/{session}"
       )
       """Wait for 1 hour and delete session"""
       await asyncio.sleep(3600)
