@@ -77,7 +77,6 @@ async def main_route(token):
 async def set_role_color():
   bytes_data = await request.body
   data = json.loads(bytes_data.decode("UTF-8"))
-
   token = data["token"]
   cursor.execute(f"SELECT * FROM MaaldarSession WHERE token = '{token}'")
   maaldar_session = cursor.fetchone()
@@ -87,9 +86,9 @@ async def set_role_color():
   """Validate role ID being provided in the body"""
   user_id = maaldar_session[0]
   cursor.execute(f"SELECT role_id FROM Maaldar WHERE user_id = '{user_id}'")
-  role_id = cursor.fetchone()[1]
+  role_id = cursor.fetchone()[0]
 
-  if role_id != int(data["role_id"]):
+  if role_id != data["role_id"]:
     return "Token doesn't match your role ID", 403
 
   await bot.wait_until_ready()
