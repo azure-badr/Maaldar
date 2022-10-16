@@ -10,16 +10,6 @@ class Color:
   connection = database.connection
   cursor = database.cursor
 
-  def __init__(self):
-    # Clear the MaaldarSession table on startup
-    Color.cursor.execute("SELECT * FROM MaaldarSession")
-    maaldar_sessions = Color.cursor.fetchall()
-    print(maaldar_sessions)
-    print("[!] Clearing MaaldarSession")
-    
-    Color.cursor.execute("DELETE FROM MaaldarSession")
-    Color.connection.commit()
-
   async def color(interaction: discord.Interaction, color: str = None) -> None:
     await interaction.response.defer()
 
