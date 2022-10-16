@@ -12,6 +12,11 @@ class Color:
 
   def __init__(self):
     # Clear the MaaldarSession table on startup
+    Color.cursor.execute("SELECT * FROM MaaldarSession")
+    maaldar_sessions = Color.cursor.fetchall()
+    print(maaldar_sessions)
+    print("[!] Clearing MaaldarSession")
+    
     Color.cursor.execute("DELETE FROM MaaldarSession")
     Color.connection.commit()
 
