@@ -16,7 +16,7 @@ except:
 		configuration = {
 			"custom_role_id": int(os.environ["CUSTOM_ROLE_ID"]),
 			"guild_id": int(os.environ["GUILD_ID"]),
-			"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(", ")],
+			"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(",")],
 			"database_name": os.environ["DATABASE_NAME"],
 			"database_user": os.environ["DATABASE_USER"],
 			"database_password": os.environ["DATABASE_PASSWORD"],
