@@ -6,29 +6,24 @@ import json
 
 from PIL import Image, ImageDraw, ImageFont
 
-if not os.path.exists("./config.json"):
-	print("The config.json file has not been setup. Please set it up before proceeding")
-	sys.exit()
-
-configuration = json.loads(
-	open("config.json", 'r').read()
-)
-
 try:
+	configuration = json.loads(
+		open("config.json", 'r').read()
+	)
+
 	if os.environ["ENVIRONMENT"] == "PRODUCTION":
 		configuration = {
-			"custom_role_id": os.environ["CUSTOM_ROLE_ID"],
-			"staff_role_id": os.environ["STAFF_ROLE_ID"],
-			"guild_id": os.environ["GUILD_ID"],
-			"role_ids": os.environ["ROLE_IDS"].split(", "),
+			"custom_role_id": int(os.environ["CUSTOM_ROLE_ID"]),
+			"guild_id": int(os.environ["GUILD_ID"]),
+			"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(", ")],
 			"database_name": os.environ["DATABASE_NAME"],
 			"database_user": os.environ["DATABASE_USER"],
 			"database_password": os.environ["DATABASE_PASSWORD"],
 			"database_host": os.environ["DATABASE_HOST"],
-			"database_port": os.environ["DATABASE_PORT"],
+			"database_port": int(os.environ["DATABASE_PORT"]),
 			"token": os.environ["TOKEN"]
 		}
-except KeyError:
+except:
 	pass
 
 def get_maaldar_user(user_id):
