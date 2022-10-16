@@ -48,8 +48,8 @@ class Color:
     )
     maaldar_session = Color.cursor.fetchone()
     if not maaldar_session:
-        asyncio.ensure_future(Color.create_session(interaction))
-        return
+      await asyncio.create_task(Color.create_session(interaction))
+      return
 
     await interaction.followup.send(f"Session already exists\n> Please check your DM")
     return
