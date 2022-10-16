@@ -6,6 +6,7 @@ import json
 
 from PIL import Image, ImageDraw, ImageFont
 
+configuration = {}
 try:
 	configuration = json.loads(
 		open("config.json", 'r').read()
