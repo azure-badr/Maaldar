@@ -11,7 +11,7 @@ try:
 	configuration = json.loads(
 		open("config.json", 'r').read()
 	)
-
+except:
 	if os.environ["ENVIRONMENT"] == "PRODUCTION":
 		configuration = {
 			"custom_role_id": int(os.environ["CUSTOM_ROLE_ID"]),
@@ -24,8 +24,6 @@ try:
 			"database_port": int(os.environ["DATABASE_PORT"]),
 			"token": os.environ["TOKEN"]
 		}
-except:
-	pass
 
 def get_maaldar_user(user_id):
 	cursor = configuration["database"].cursor
