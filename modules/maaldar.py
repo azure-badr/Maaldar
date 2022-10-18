@@ -25,14 +25,15 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   def has_custom_role():
     async def predicate(interaction: discord.Interaction):
       maaldar_user = get_maaldar_user(interaction.user.id)
-      if maaldar_user is None:
-        raise Maaldar.NoCustomRole(
-          "You do not have a role yet!\n"
-          "Make one by typing `/maaldar role`"
-        )
-      
-      return True
+      if maaldar_user is not None:
+        return True
 
+      error = "You do not have role yet! :desert:"
+      if not interaction.command.name == "unassign":
+        error += "\nMake one by typing `/maaldar role`"
+      
+      raise Maaldar.NoCustomRole(error)
+    
     return app_commands.check(predicate)
 
   # Role Command
