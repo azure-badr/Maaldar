@@ -108,7 +108,6 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @app_commands.describe(
     user="User to unassign the role from"
   )
-  @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
   async def _unassign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
     await Assignation.unassign(interaction=interaction, user=user)
