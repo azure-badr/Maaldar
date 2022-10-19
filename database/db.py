@@ -22,7 +22,7 @@ class Database:
       self.cursor = self.connection.cursor()
       configuration["database"] = self
     except Exception as error:
-      print("Unable to connect: ", error)
+      print("Unable to connect, exiting... ", error)
       sys.exit()
 
   def __del__(self):
