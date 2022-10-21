@@ -4,7 +4,7 @@ from discord.ext import commands
 from util import configuration
 from database.db import database
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 class BoostEvent(commands.Cog):
   DAYS_REQUIRED_FOR_ROLE = 180
@@ -19,7 +19,7 @@ class BoostEvent(commands.Cog):
     self.cursor.execute(f"SELECT * FROM MaaldarDuration WHERE user_id = '{member_id}'")
     if self.cursor.fetchone() is None:
       self.cursor.execute(
-        f"INSERT INTO MaaldarDuration VALUES ('{member_id}', {boosting_since})"
+        f"INSERT INTO MaaldarDuration VALUES ('{member_id}', '{boosting_since}')"
       )
       self.connection.commit()
       return
@@ -53,7 +53,7 @@ class BoostEvent(commands.Cog):
       return
     
     # Setting member.premium_since.tzinfo to None to avoid naive and aware datetime comparison
-    boosting_since = before.premium_since.replace(tzinfo=None)
+    boosting_since = datetime.now() - before.premium_since.replace(tzinfo=None)
     self._check_and_update_duration(member.id, boosting_since)
     
     self.cursor.execute(f"SELECT boosting_since FROM MaaldarDuration WHERE user_id = '{member.id}'")
