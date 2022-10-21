@@ -15,11 +15,11 @@ class BoostEvent(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
   
-  def _check_and_update_duration(self, member_id: str, boosting_since: str) -> None:
+  def _check_and_update_duration(self, member_id: str, boosting_since: timedelta) -> None:
     self.cursor.execute(f"SELECT * FROM MaaldarDuration WHERE user_id = '{member_id}'")
     if self.cursor.fetchone() is None:
       self.cursor.execute(
-        f"INSERT INTO MaaldarDuration VALUES ('{member_id}', '{boosting_since}')"
+        f"INSERT INTO MaaldarDuration VALUES ('{member_id}', {boosting_since})"
       )
       self.connection.commit()
       return
