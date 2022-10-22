@@ -142,6 +142,9 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_color_picker.error
   @_palette.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
+    print(error)
+    
+    await interaction.response.send_message("Sorry, something wrong... :desert:", ephemeral=True)
     if isinstance(error, Maaldar.NoCustomRole):
       await interaction.response.send_message(error)
       return
