@@ -60,7 +60,8 @@ def concatenate_images(images):
 
 	width = 0
 	for index, image_to_paste in enumerate(images, start=1):
-		font = ImageFont.truetype("arial.ttf", 13)
+		font = ImageFont.load_default()
+		font
 		draw = ImageDraw.Draw(image_to_paste)
 		draw.text(
 			(10, 10), 
