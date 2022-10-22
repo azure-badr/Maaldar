@@ -17,6 +17,7 @@ except:
 			"custom_role_id": int(os.environ["CUSTOM_ROLE_ID"]),
 			"guild_id": int(os.environ["GUILD_ID"]),
 			"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(",")],
+			"emoji_server_id": int(os.environ["EMOJI_SERVER_ID"]),
 			"database_name": os.environ["DATABASE_NAME"],
 			"database_user": os.environ["DATABASE_USER"],
 			"database_password": os.environ["DATABASE_PASSWORD"],
