@@ -1,12 +1,6 @@
 # Maaldar  
 <b>Maaldar</b> is a Nitro bot for Discord that gives nitro boosters for your server members a custom identity.  
 
-# Prerequisites  
-<code>discord.py</code>
-<code>ColorThief</code>
-<code>Pillow</code>
-<code>psycopg2</code>
-
 ## Roles  
 Maaldar works with roles. You have your own role.  
 
