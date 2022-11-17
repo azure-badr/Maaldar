@@ -10,7 +10,12 @@ class Role:
 	
 	async def role(interaction: discord.Interaction, name: str) -> None:
 		await interaction.response.defer()
-
+		if len(interaction.guild.roles) >= 250:
+			await interaction.followup.send(
+				"> This server has reached the maximum number of roles 😱 - time to free up some space!"
+			)
+			return
+		
 		member = interaction.user
 		maaldar_user = get_maaldar_user(member.id)
 		if maaldar_user is None:
