@@ -39,6 +39,19 @@ class Role:
 			f"Your role already exists by the name `{role.name}`\n"
 			"> Assign it to yourself by typing `/maaldar assign`"
 		)
+	
+	async def position(interaction: discord.Interaction, below: str = None, above: str = None):
+		if below is not None and above is not None:
+			await interaction.response.send(
+				"Please specify either `below` or `above`"
+			)
+			return
+	
+	async def position_below(interaction: discord.Interaction, below: str) -> list:
+		pass		
+	
+	async def position_above(interaction: discord.Interaction, above: str) -> list:
+		pass
 
 def setup(bot):
 	bot.add_cog(Role(bot))
