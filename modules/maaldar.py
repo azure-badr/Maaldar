@@ -133,6 +133,18 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   async def _color_picker(self, interaction: discord.Interaction) -> None:
     await Color.color_picker(interaction=interaction)
   
+  @app_commands.command(
+    name="position",
+    description="Positions your role relative to other roles"
+  )
+  @app_commands.autocomplete(
+    above=Role.position_above, 
+    below=Role.position_below
+  )
+  @app_commands.checks.has_any_role(*configuration["role_ids"])
+  async def _position(self, interaction: discord.Interaction, below: str = None, above: str = None) -> None:
+    await Role.position(interaction=interaction, below=below, above=above)
+  
   @_name.error
   @_role.error
   @_color.error
