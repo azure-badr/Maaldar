@@ -17,7 +17,11 @@ class Database:
         user=configuration["database_user"], 
         password=configuration["database_password"],
         host=configuration["database_host"], 
-        port=configuration["database_port"]
+        port=configuration["database_port"],
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5
       )
       self.cursor = self.connection.cursor()
       configuration["database"] = self
