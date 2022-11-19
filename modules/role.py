@@ -84,11 +84,9 @@ class Role:
 		Role.cursor.execute("SELECT role_id FROM Maaldar")
 		maaldar_role_ids = Role.cursor.fetchall()
 		
-		roles = []
+		roles = [interaction.guild.get_role(int(role_id[0])) for role_id in maaldar_role_ids]
 		if not role_name == "":
 			roles = [role for role in roles if role.name.startswith(role_name)]
-		else:
-			roles = [interaction.guild.get_role(int(role_id[0])) for role_id in maaldar_role_ids]
 
 		return [app_commands.Choice(name=role.name, value=str(role.id)) for role in roles[:25]]
 
