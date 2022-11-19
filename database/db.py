@@ -21,6 +21,8 @@ class Database:
       )
       self.cursor = self.connection.cursor()
       configuration["database"] = self
+      print("Database connection established")
+      print(self.cursor)
     except Exception as error:
       print("Unable to connect, exiting... ", error)
       sys.exit()
