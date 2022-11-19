@@ -71,6 +71,7 @@ class BoostEvent(commands.Cog):
 
     await member.remove_roles(role)
     self.cursor.execute(f"DELETE FROM Maaldar WHERE user_id = '{member.id}'")
+    self.cursor.execute(f"DELETE FROM MaaldarDuration WHERE user_id = '{member.id}'")
     self.connection.commit()
 
 async def setup(bot: commands.Bot):
