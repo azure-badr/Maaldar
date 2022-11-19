@@ -88,7 +88,7 @@ class Role:
 		roles = [interaction.guild.get_role(int(role_id[0])) for role_id in maaldar_role_ids]
 		print(roles)
 		if not role_name == "":
-			roles = [role for role in roles if role.name.startswith(role_name) and not role]
+			roles = [role for role in roles if role.name.startswith(role_name) and not role if not role is None]
 		print(roles)
 		return [app_commands.Choice(name=role.name, value=str(role.id)) for role in roles[:25] if not role is None]
 
