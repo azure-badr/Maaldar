@@ -81,10 +81,14 @@ class Role:
 		return await interaction.response.send_message(f"Moved your role below {role.name} ✨")
 		
 	async def position_autocomplete(self, interaction: discord.Interaction, role_name: str) -> list[app_commands.Choice[str]]:
+		print(Role.cursor)
 		Role.cursor.execute("SELECT role_id FROM Maaldar")
 		maaldar_role_ids = Role.cursor.fetchall()
 		
+		print(maaldar_role_ids)
+
 		roles = [interaction.guild.get_role(int(role_id[0])) for role_id in maaldar_role_ids]
+		print(roles)
 		if not role_name == "":
 			roles = [role for role in roles if role.name.startswith(role_name)]
 
