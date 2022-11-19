@@ -31,7 +31,4 @@ class Database:
       print("Unable to connect, exiting... ", error)
       sys.exit()
 
-  def __del__(self):
-    self.connection.close()
-
 database = Database()
