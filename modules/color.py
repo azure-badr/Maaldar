@@ -50,7 +50,7 @@ class Color:
   @staticmethod
   async def create_session(interaction):
     session = uuid.uuid4().hex
-    insert_query(f"INSERT INTO MaaldarSession (user_id, session) VALUES ('{interaction.user.id}', '{session}')")
+    insert_query(f"INSERT INTO MaaldarSession (user_id, token) VALUES ('{interaction.user.id}', '{session}')")
     await interaction.followup.send("Created session, please check your DM")
 
     try:
