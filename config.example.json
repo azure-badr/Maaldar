@@ -3,10 +3,6 @@
   "role_ids": ["Role IDs that are able to use Maaldar commands"],
   "custom_role_id": "The Maaldar (Nitro Booster) role ID goes here. [Integer value]",
   "emoji_server_id": "The server ID where the role color emojis will be uploaded and removed [Integer value]",
-  "database_name": "PostgreSQL database name",
-  "database_user": "PostgreSQL database user",
-  "database_password": "PostgreSQL password",
-  "database_host": "PostgreSQL server host",
-  "database_port": "PostgreSQL server port [Integer value]",
+  "connection_string": "The connection string (e.g postgresql://username:password@host:port/database_name)",
   "token": "Bot token [String value]"
 }
