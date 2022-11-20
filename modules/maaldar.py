@@ -9,13 +9,9 @@ from modules.role import Role
 from modules.name import Name
 from modules.icon import Icon
 
-from database.db import database
 from util import get_maaldar_user, configuration
 
 class Maaldar(commands.GroupCog, name="maaldar"):
-  connection = database.connection
-  cursor = database.cursor
-  
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
   
