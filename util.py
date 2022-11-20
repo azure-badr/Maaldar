@@ -1,9 +1,9 @@
 import io
 import os
 import re
-import sys
 import json
 
+import psycopg
 from PIL import Image, ImageDraw, ImageFont
 
 configuration = {}
@@ -18,20 +18,42 @@ except:
 			"guild_id": int(os.environ["GUILD_ID"]),
 			"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(",")],
 			"emoji_server_id": int(os.environ["EMOJI_SERVER_ID"]),
-			"database_name": os.environ["DATABASE_NAME"],
-			"database_user": os.environ["DATABASE_USER"],
-			"database_password": os.environ["DATABASE_PASSWORD"],
-			"database_host": os.environ["DATABASE_HOST"],
-			"database_port": int(os.environ["DATABASE_PORT"]),
+			"connection_string": os.environ["CONNECTION_STRING"],
 			"token": os.environ["TOKEN"]
 		}
 
+def delete_query(query):
+	with psycopg.connect(configuration["connection_string"]) as connection:
+		with connection.cursor() as cursor:
+			cursor.execute(query)
+			connection.commit()
+
+def insert_query(query):
+	with psycopg.connect(configuration["connection_string"]) as connection:
+		with connection.cursor() as cursor:
+			cursor.execute(query)
+			connection.commit()
+
+def insert_with_params(query, params):
+	with psycopg.connect(configuration["connection_string"]) as connection:
+		with connection.cursor() as cursor:
+			cursor.execute(query, params)
+			connection.commit()
+
+def select_one(query):
+	with psycopg.connect(configuration["connection_string"]) as connection:
+		with connection.cursor() as cursor:
+			cursor.execute(query)
+			return cursor.fetchone()
+
+def select_all(query):
+	with psycopg.connect(configuration["connection_string"]) as connection:
+		with connection.cursor() as cursor:
+			cursor.execute(query)
+			return cursor.fetchall()
+
 def get_maaldar_user(user_id):
-	cursor = configuration["database"].cursor
-	cursor.execute(
-			f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'"
-	)
-	return cursor.fetchone()
+	return select_one(f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'")
 
 def make_image(dominant_color):
 	image = Image.new(

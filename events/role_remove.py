@@ -1,29 +1,19 @@
 import discord
 from discord.ext import commands
 
-from util import configuration
-from database.db import database
+from util import configuration, select_one, delete_query
 
 class RoleRemove(commands.Cog):
-  connection = database.connection
-  cursor = database.cursor
-
   def __init__(self, bot):
     self.bot = bot
-
+  
   @commands.Cog.listener()
   async def on_guild_role_delete(self, role):
-    RoleRemove.cursor.execute(
-      f"SELECT * FROM Maaldar WHERE role_id = '{role.id}'"
-    )
-    maaldar_role = RoleRemove.cursor.fetchone()
+    maaldar_role = select_one(f"SELECT * FROM Maaldar WHERE role_id = '{role.id}'")
     if maaldar_role is None:
       return
-
-    RoleRemove.cursor.execute(
-      f"DELETE FROM Maaldar WHERE role_id = '{role.id}'"
-    )
-    RoleRemove.connection.commit()
+    
+    delete_query(f"DELETE FROM Maaldar WHERE role_id = '{role.id}'")
     print("Deleted role from Maaldar that was manually deleted")
 
 

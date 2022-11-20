@@ -1,5 +1,4 @@
-from database.db import database
-from util import get_maaldar_user
+from util import get_maaldar_user, delete_query, insert_query, select_one
 
 import discord
 
@@ -7,14 +6,11 @@ import uuid
 import asyncio
 
 class Color:
-  connection = database.connection
-  cursor = database.cursor
-
   async def color(interaction: discord.Interaction, color: str = None) -> None:
     await interaction.response.defer()
-
+    
     maaldar_user = get_maaldar_user(interaction.user.id)
-
+    
     if color is None:
       role = interaction.guild.get_role(int(maaldar_user[1]))
       await role.edit(color=discord.Color.default())
@@ -43,10 +39,7 @@ class Color:
 
   async def color_picker(interaction: discord.Interaction) -> None:
     await interaction.response.defer()
-    Color.cursor.execute(
-      f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'"
-    )
-    maaldar_session = Color.cursor.fetchone()
+    maaldar_session = select_one(f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")
     if not maaldar_session:
       await asyncio.create_task(Color.create_session(interaction))
       return
@@ -57,10 +50,7 @@ class Color:
   @staticmethod
   async def create_session(interaction):
     session = uuid.uuid4().hex
-    Color.cursor.execute(
-      f"INSERT INTO MaaldarSession VALUES ('{interaction.user.id}', '{session}')"
-    )
-    Color.connection.commit()
+    insert_query(f"INSERT INTO MaaldarSession (user_id, session) VALUES ('{interaction.user.id}', '{session}')")
     await interaction.followup.send("Created session, please check your DM")
 
     try:
@@ -70,14 +60,9 @@ class Color:
       )
       """Wait for 1 hour and delete session"""
       await asyncio.sleep(3600)
-      Color.cursor.execute(
-        f"DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'"
-      )
-      Color.connection.commit()
+      delete_query(f"DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'"
+)
 
     except discord.Forbidden:
       await interaction.followup.send("Please enable your DMs")
-      Color.cursor.execute(
-        "DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'"
-      )
-      Color.connection.commit()
+      delete_query(f"DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")

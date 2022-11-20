@@ -1,34 +1,26 @@
 import discord
 from discord.ext import commands
 
-from util import configuration
-from database.db import database
+from util import configuration, select_one, insert_query, delete_query
 
 from datetime import datetime, timedelta
 
 class BoostEvent(commands.Cog):
   DAYS_REQUIRED_FOR_ROLE = 180
-  
-  connection = database.connection
-  cursor = database.cursor
 
   def __init__(self, bot):
     self.bot = bot
   
   def _check_and_update_duration(self, member_id: str, boosting_since: timedelta) -> None:
-    self.cursor.execute(f"SELECT * FROM MaaldarDuration WHERE user_id = '{member_id}'")
-    if self.cursor.fetchone() is None:
-      self.cursor.execute(
-        f"INSERT INTO MaaldarDuration VALUES ('{member_id}', '{boosting_since}')"
-      )
-      self.connection.commit()
+    data = select_one(f"SELECT * FROM MaaldarDuration WHERE user_id = '{member_id}'")
+    if data is None:
+      insert_query(f"INSERT INTO MaaldarDuration VALUES ('{member_id}', '{boosting_since}')")
       return
     
-    self.cursor.execute(
+    insert_query(
       f"UPDATE MaaldarDuration SET boosting_since = boosting_since + '{boosting_since}' "
       f"WHERE user_id = '{member_id}'"
     )
-    self.connection.commit()
   
   @commands.Cog.listener()
   async def on_member_update(self, before: discord.Member, after: discord.Member):
@@ -56,23 +48,26 @@ class BoostEvent(commands.Cog):
     boosting_since = datetime.now() - before.premium_since.replace(tzinfo=None)
     self._check_and_update_duration(member.id, boosting_since)
     
-    self.cursor.execute(f"SELECT boosting_since FROM MaaldarDuration WHERE user_id = '{member.id}'")
-    boosting_since = self.cursor.fetchone()[0] # timedelta object
+    boosting_since = select_one(
+      f"SELECT boosting_since FROM MaaldarDuration WHERE user_id = '{member.id}'"
+    ) # timedelta object
     
     if boosting_since >= timedelta(days=self.DAYS_REQUIRED_FOR_ROLE):
       return
     
-    self.cursor.execute(f"SELECT role_id FROM Maaldar WHERE user_id = '{member.id}'")
-    if self.cursor.fetchone() is None:
+    data = select_one(f"SELECT role_id FROM Maaldar WHERE user_id = '{member.id}'")
+    if data is None:
       return
     
     role_id = self.cursor.fetchone()[0]
     role = member.guild.get_role(int(role_id))
 
     await member.remove_roles(role)
-    self.cursor.execute(f"DELETE FROM Maaldar WHERE user_id = '{member.id}'")
-    self.cursor.execute(f"DELETE FROM MaaldarDuration WHERE user_id = '{member.id}'")
-    self.connection.commit()
+
+    delete_query(
+      f"DELETE FROM Maaldar WHERE user_id = '{member.id}';"
+      f"DELETE FROM MaaldarDuration WHERE user_id = '{member.id}'"
+    )
 
 async def setup(bot: commands.Bot):
   await bot.add_cog(BoostEvent(bot), guilds=[discord.Object(id=configuration["guild_id"])])

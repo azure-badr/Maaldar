@@ -1,13 +1,9 @@
-from util import configuration, get_maaldar_user
-from database.db import database
+from util import configuration, get_maaldar_user, insert_query, select_all
 
 import discord
 from discord import app_commands
 
 class Role:
-	connection = database.connection
-	cursor = database.cursor
-	
 	async def role(interaction: discord.Interaction, name: str) -> None:
 		await interaction.response.defer()
 		if len(interaction.guild.roles) >= 250:
@@ -27,10 +23,7 @@ class Role:
 			)
 			await member.add_roles(role)
 
-			Role.cursor.execute(
-				f"INSERT INTO Maaldar VALUES ('{member.id}', '{role.id}')"
-			)
-			Role.connection.commit()
+			insert_query(f"INSERT INTO Maaldar VALUES ('{member.id}', '{role.id}')")
 
 			await interaction.followup.send(f"**{name}** created and assigned to you ✨")
 			return
@@ -81,8 +74,7 @@ class Role:
 		return await interaction.response.send_message(f"Moved your role below {role.name} ✨")
 		
 	async def position_autocomplete(self, interaction: discord.Interaction, role_name: str) -> list[app_commands.Choice[str]]:
-		Role.cursor.execute("SELECT role_id FROM Maaldar")
-		maaldar_role_ids = Role.cursor.fetchall()
+		maaldar_role_ids = select_all("SELECT role_id FROM Maaldar")
 		
 
 		roles = [interaction.guild.get_role(int(role_id[0])) for role_id in maaldar_role_ids]
