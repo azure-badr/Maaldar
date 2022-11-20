@@ -74,6 +74,7 @@ class Role:
 		return await interaction.response.send_message(f"Moved your role below {role.name} ✨")
 		
 	async def position_autocomplete(self, interaction: discord.Interaction, role_name: str) -> list[app_commands.Choice[str]]:
+		await interaction.response.defer()
 		maaldar_role_ids = select_all("SELECT role_id FROM Maaldar")
 		
 
