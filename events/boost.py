@@ -52,7 +52,7 @@ class BoostEvent(commands.Cog):
       f"SELECT boosting_since FROM MaaldarDuration WHERE user_id = '{member.id}'"
     ) # timedelta object
     
-    if boosting_since >= timedelta(days=self.DAYS_REQUIRED_FOR_ROLE):
+    if boosting_since[0] >= timedelta(days=self.DAYS_REQUIRED_FOR_ROLE):
       return
     
     data = select_one(f"SELECT role_id FROM Maaldar WHERE user_id = '{member.id}'")
