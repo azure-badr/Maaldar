@@ -156,7 +156,6 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     if not interaction.response.is_done():
       await interaction.response.defer()
     
-    await interaction.followup.send("Sorry, something wrong... :desert:", ephemeral=True)
     if isinstance(error, Maaldar.NoCustomRole):
       await interaction.followup.send(error)
       return
@@ -167,6 +166,8 @@ class Maaldar(commands.GroupCog, name="maaldar"):
         ephemeral=True
       )
       return
+    
+    await interaction.followup.send("Sorry, something wrong... :desert:", ephemeral=True)
 
 async def setup(bot: commands.Bot):
   await bot.add_cog(Maaldar(bot), guilds=[discord.Object(id=configuration["guild_id"])])
