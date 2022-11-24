@@ -4,6 +4,7 @@ import re
 import json
 
 import psycopg
+import wonderwords
 from PIL import Image, ImageDraw, ImageFont
 
 configuration = {}
@@ -108,3 +109,11 @@ def rgb_to_hex(rgb):
 def match_url_regex(string):
 	# It works 🤷‍♀️
 	return re.findall(r'(?:http\:|https\:)?\/\/.*\.(?:png|jpg)', string)
+
+def create_session_token() -> str:
+	random_word = wonderwords.RandomWord()
+	session_tokens: list[str] = random_word.random_words(5, word_max_length=4, include_parts_of_speech=["verbs", "nouns"])
+	session_tokens = [token.capitalize() for token in session_tokens]
+	session = "".join(session_tokens)
+	
+	return session

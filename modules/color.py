@@ -1,8 +1,7 @@
-from util import get_maaldar_user, delete_query, insert_query, select_one
+from util import get_maaldar_user, delete_query, insert_query, select_one, create_session_token
 
 import discord
 
-import uuid
 import asyncio
 
 class Color:
@@ -49,10 +48,11 @@ class Color:
 
   @staticmethod
   async def create_session(interaction):
-    session = uuid.uuid4().hex
+    session = create_session_token()
+    
     insert_query(f"INSERT INTO MaaldarSession (user_id, token) VALUES ('{interaction.user.id}', '{session}')")
     await interaction.followup.send("Created session, please check your DM")
-
+  
     try:
       await interaction.user.send(
         "Session created ✨\n"
