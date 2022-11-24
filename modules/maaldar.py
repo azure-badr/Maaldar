@@ -127,6 +127,9 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
   async def _color_picker(self, interaction: discord.Interaction) -> None:
+    await interaction.response.send_message("This command is disabled (temporarily)")
+    return
+    
     await Color.color_picker(interaction=interaction)
   
   @app_commands.command(
