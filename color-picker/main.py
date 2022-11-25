@@ -12,24 +12,13 @@ from quart import Quart, render_template, request
 import sys
 import os.path
 
-from config import configuration
+from config import configuration, select_one
 # Setting up the static files and templates
 sys.path.append(
   os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir)
   )
 )
-
-# Setup database
-import psycopg2
-connection = psycopg2.connect(
-  database=configuration["database_name"], 
-  user=configuration["database_user"], 
-  password=configuration["database_password"],
-  host=configuration["database_host"], 
-  port=configuration["database_port"]
-)
-cursor = connection.cursor()
 
 # Quart app
 quart_app = Quart(__name__)
@@ -48,15 +37,10 @@ async def main():
 async def main_route(token):
   await bot.wait_until_ready()
 
-  cursor.execute(f"SELECT * FROM MaaldarSession WHERE token = '{token}'")
-  maaldar_session = cursor.fetchone()
+  maaldar_session = select_one("SELECT * FROM MaaldarSession WHERE token = %s", (token,))
   if maaldar_session:
-    cursor.execute(
-      f"SELECT role_id FROM Maaldar WHERE user_id = '{maaldar_session[0]}'"
-    )
-
     guild = bot.get_guild(configuration["guild_id"])
-    role_id = cursor.fetchone()[0]
+    role_id = select_one("SELECT role_id FROM Maaldar WHERE user_id = %s", (maaldar_session[0], ))[0]
     member = guild.get_member(int(maaldar_session[0]))
     role = guild.get_role(int(role_id))
     role_icon = role.icon.url if role.icon else None
@@ -78,16 +62,15 @@ async def set_role_color():
   bytes_data = await request.body
   data = json.loads(bytes_data.decode("UTF-8"))
   token = data["token"]
-  cursor.execute(f"SELECT * FROM MaaldarSession WHERE token = '{token}'")
-  maaldar_session = cursor.fetchone()
+  maaldar_session = select_one("SELECT * FROM MaaldarSession WHERE token = %s", (token,))
+
   if not maaldar_session:
     return "Invalid token", 403
   
   """Validate role ID being provided in the body"""
   user_id = maaldar_session[0]
-  cursor.execute(f"SELECT role_id FROM Maaldar WHERE user_id = '{user_id}'")
-  role_id = cursor.fetchone()[0]
-
+  role_id = select_one("SELECT role_id FROM Maaldar WHERE user_id = %s", (user_id, ))[0]
+  
   if role_id != data["role_id"]:
     return "Token doesn't match your role ID", 403
 
@@ -101,7 +84,7 @@ async def set_role_color():
     )
   except:
     return "Invalid color", 422
-
+  
   return "Role set", 200
 
 # Start bot and add it to Quart app loop
