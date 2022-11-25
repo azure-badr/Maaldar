@@ -1,6 +1,4 @@
-# fly.toml file generated for maaldar on 2022-10-14T12:03:15+05:00
-
-app = "pakcord-color-picker"
+app = "pakcord"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
