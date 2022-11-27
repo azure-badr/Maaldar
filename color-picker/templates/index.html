@@ -5,17 +5,25 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maaldar Color Picker</title>
+  <link rel="stylesheet" href="../static/index.css">
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.6/jscolor.min.js"></script>
   <script defer>
     function handleColorChange(event) {
       const colorPicker = document.getElementById("color-picker");
-      document.getElementById("name").style.color = colorPicker.value;
+      document.getElementById("username").style.color = colorPicker.value;
     }
 
     function setColor(token, roleId) {
+      console.log("Setting color")
       const colorPicker = document.getElementById("color-picker");
       const setButton = document.getElementById("set-button");
-      setButton.setAttribute("disabled", true);
+      const settingColor = document.getElementById("setting-color");
+      
+      settingColor.classList.toggle("set", false);
+      settingColor.textContent = "Setting color..."
+      settingColor.style.display = "block";
+      
+      setButton.setAttribute("disabled", "true");
 
       fetch("/set_role_color", {
         method: "POST",
@@ -29,75 +37,67 @@
         })
       })
       .then(response => {
-        const setButton = document.getElementById("set-button");
-        setTimeout(() => {
-          setButton.innerText = "Set color";
-          setButton.setAttribute("disabled", false);
-        }, 2000)
-
-        if (response.status = 200) {
-          setButton
-          setButton.innerText = "Color set!";
+        setButton.toggleAttribute("disabled");
+        
+        if (response.status === 200) {
+          settingColor.textContent = "Color set!"
+          settingColor.classList.toggle("set", true);
+          return;
+        }
+        
+        if (response.status === 400) {
+          settingColor.innerText = "Invalid color";
           return;
         }
 
-        if (response.status = 400) {
-          setButton.innerText = "Invalid color";
-          return;
-        }
-
-        setButton.innerText = "Invalid token";
-
+        settingColor.innerText = "Invalid token";
       })
     }
   </script>
 </head>
 <body>
   <div class="container">
-    <div class="message-container">
-      <div class="profile-picture">
-        <img
-          class="avatar"
-          src="{{ avatar_url }}" 
-          alt="profile_picture" />
-      </div>
-      <div class="message-box">
-        
-          <div>
-            <p 
-              style="color: {{ color }}; display: inline;"
-              id="name"
-              class="text message-name">{{ name }}
-            </p>
-            {% if role_icon != None %}
-              <img class="role-icon" src="{{ role_icon }}" />
-            {% endif %}
-          </div>
-          <p class="text message-content">Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum, reprehenderit!</p>
-      </div>
+    <div class="profile-picture">
+      <img src="{{ avatar_url }}" alt="Profile picture">
     </div>
-    <div class="color-container">
-      <input 
-        class="color-input"
-        id="color-picker" 
-        data-jscolor="{ 
-          onInput: handleColorChange,
-          backgroundColor: '#333',
-          borderColor: '#333',
-          borderRadius: 15 
-        }"
-      >
-      <button 
-        class="set-button"
-        id="set-button"
-        onclick="setColor(
-          `{{ token }}`,
-          `{{ role_id }}`
-        )">
-      Set color
-    </button>
+    <div class="message-container">
+      <div class="message-header">
+        <div>
+          <p style="color: {{ color }};" id="username">{{ name }}</p>
+          {% if role_icon != None %}
+            <img src="{{ role_icon }}" />
+          {% endif %}
+        </div>
+        <span>Today at 6:09 PM</span>
+      </div>
+      <div class="message-content">
+        <p>Something came in the mail today</p>
+      </div>
     </div>
   </div>
-  <link rel="stylesheet" href="../static/index.css">
+  <div>
+    <p id="setting-color" class="setting-color">Setting color...</p>
+  </div>
+  <div class="color-container">
+    <input 
+      class="color-input"
+      id="color-picker" 
+      data-jscolor="{ 
+        onInput: handleColorChange,
+        backgroundColor: '#333',
+        borderColor: '#333',
+        borderRadius: 15,
+      }"
+    >
+    <button 
+      class="set-button"
+      id="set-button"
+      onclick="setColor(
+        `{{ token }}`,
+        `{{ role_id }}`
+      )">
+    Set color
+  </button>
+  </div>
 </body>
 </html>

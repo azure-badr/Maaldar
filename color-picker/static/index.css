@@ -12,83 +12,153 @@ body {
   background: #36393f;
 }
 
+p {
+  margin: 0;
+  color: white;
+}
+
 .container {
-  padding: 2rem 0;
-  display: grid;
-  place-items: center;
-  gap: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: .8rem;
+  margin-top: 5rem;
+}
+
+.profile-picture {
+  display: flex;
+  align-items: center;
+}
+
+.profile-picture img {
+  text-align: justify;
+  width: 45px;
+  border-radius: 50%;
 }
 
 .message-container {
   display: flex;
-  gap: 1rem;
-}
-
-.profile-picture img {
-  border-radius: 50%;
-}
-
-.message-box {
-  color: white;
-  display: flex;
   flex-direction: column;
-  margin-top: 5px;
-  gap: 5px;
+  gap: .5rem;
 }
 
-.text {
-  font-size: 1.5rem;
-  margin: 0;
+.message-header {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: .5rem;
 }
 
-.avatar {
-  width: 50px;
+.message-header div {
+  display: flex;
+  align-items: flex-end;
+  gap: .5rem;
 }
 
-.message-name {
+.message-header p {
   font-family: Whitney-Medium;
+  font-size: 1.1rem;
+  display: inline;
+  line-height: 1rem;
 }
 
-.role-icon {
-  position: relative;
-  top: 3px;
-  height: 30px;
-  margin-left: 3px;
+.message-header img {
+  display: inline;
+  width: 1rem;
 }
 
-.message-content {
+.message-header span {
   font-family: Whitney-Light;
+  font-size: 0.8rem;
+  color: white;
+  opacity: 0.5;
+}
+
+.message-content p {
+  font-family: Whitney-Light;
+  font-size: 1rem;
+}
+
+div:has(.setting-color) {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.setting-color {
+  display: none;
+  font-family: Whitney-Medium;
+  background-color: #161515;
+  padding: .5rem;
+  border-radius: .5rem;
+}
+
+.setting-color.set {
+  background-color: #006200;
+  color: #e5eddf;
+}
+
+.color-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .color-input {
   background-color: #282a2f;
   color: white;
-  font-weight: bold;
-  padding: 10px;
+  font-family: Whitney-Medium;
+  padding: 10px 0;
   border: none;
   border-radius: 5px;
-  text-indent: 5px;
   outline: none;
 }
 
 .set-button {
-  border-radius: 3px;
+  font-family: Whitney-Medium;
+  color: #030304;
+  border-radius: .5rem;
+  font-size: 1rem;
   border: none;
-  color: #1f273d;
-  font-weight: bold;
   padding: 10px;
   background: #7288c1;
   cursor: pointer;
+  transition: background-color 200ms ease-in-out
 }
 
-@media (max-width: 500px) {
-  .text {
-    font-size: 1.2rem;
+.set-button:hover {
+  background-color: #8da0cf;
+}
+
+.set-button:disabled {
+  background-color: grey;
+  cursor: not-allowed;
+}
+
+@media (max-width: 485px) {
+  .message-header p {
+    max-width: 20ch;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 400px) {
+  .color-container {
+    flex-direction: column-reverse;
   }
 
-  .color-container {
-    display: flex;
-    gap: 1rem;
-    flex-direction: column;
+  .set-button {
+    margin: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 295px) {
+  .message-header p {
+    max-width: max-content;
+    white-space: break-spaces;
   }
 }
