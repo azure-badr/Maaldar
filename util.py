@@ -3,9 +3,11 @@ import os
 import re
 import json
 
-import psycopg
+import psycopg_pool
+
 import wonderwords
 from PIL import Image, ImageDraw, ImageFont
+
 
 configuration = {}
 try:
@@ -23,32 +25,35 @@ except:
 			"token": os.environ["TOKEN"]
 		}
 
-def delete_query(query):
-	with psycopg.connect(configuration["connection_string"]) as connection:
+# Database pool
+pool = psycopg_pool.ConnectionPool(configuration["connection_string"], min_size=5, max_size=50)
+
+def execute_query(query, params=None):
+	with pool.connection() as connection:
 		with connection.cursor() as cursor:
-			cursor.execute(query)
+			if params:
+				cursor.execute(query, params)
+			else:
+				cursor.execute(query)
 			connection.commit()
+
+def delete_query(query):
+	execute_query(query)
 
 def insert_query(query):
-	with psycopg.connect(configuration["connection_string"]) as connection:
-		with connection.cursor() as cursor:
-			cursor.execute(query)
-			connection.commit()
+	execute_query(query)
 
 def insert_with_params(query, params):
-	with psycopg.connect(configuration["connection_string"]) as connection:
-		with connection.cursor() as cursor:
-			cursor.execute(query, params)
-			connection.commit()
+	execute_query(query, params)
 
 def select_one(query):
-	with psycopg.connect(configuration["connection_string"]) as connection:
+	with pool.connection() as connection:
 		with connection.cursor() as cursor:
 			cursor.execute(query)
 			return cursor.fetchone()
 
 def select_all(query):
-	with psycopg.connect(configuration["connection_string"]) as connection:
+	with pool.connection() as connection:
 		with connection.cursor() as cursor:
 			cursor.execute(query)
 			return cursor.fetchall()
