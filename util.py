@@ -10,20 +10,22 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 configuration = {}
+
 try:
+	configuration = {
+		"custom_role_id": int(os.environ["CUSTOM_ROLE_ID"]),
+		"guild_id": int(os.environ["GUILD_ID"]),
+		"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(",")],
+		"emoji_server_id": int(os.environ["EMOJI_SERVER_ID"]),
+		"connection_string": os.environ["CONNECTION_STRING"],
+		"token": os.environ["TOKEN"]
+	}
+except KeyError:
 	configuration = json.loads(
 		open("config.json", 'r').read()
 	)
-except:
-	if os.environ["ENVIRONMENT"] == "PRODUCTION":
-		configuration = {
-			"custom_role_id": int(os.environ["CUSTOM_ROLE_ID"]),
-			"guild_id": int(os.environ["GUILD_ID"]),
-			"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(",")],
-			"emoji_server_id": int(os.environ["EMOJI_SERVER_ID"]),
-			"connection_string": os.environ["CONNECTION_STRING"],
-			"token": os.environ["TOKEN"]
-		}
+
+print(configuration)
 
 # Database pool
 pool = psycopg_pool.ConnectionPool(configuration["connection_string"], min_size=5, max_size=50)
