@@ -8,6 +8,13 @@ import psycopg_pool
 import wonderwords
 from PIL import Image, ImageDraw, ImageFont
 
+import logging
+
+logging.basicConfig(
+	level=logging.INFO,
+	format='%(asctime)s %(levelname)s %(message)s'
+)
+logging.getLogger("psycopg.pool").setLevel(logging.INFO)
 
 configuration = {}
 
