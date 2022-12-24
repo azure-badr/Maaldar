@@ -33,7 +33,7 @@ except KeyError:
 	)
 
 # Database pool
-pool = psycopg_pool.ConnectionPool(configuration["connection_string"], min_size=5, max_size=50)
+pool = psycopg_pool.ConnectionPool(configuration["connection_string"], min_size=5, max_size=50, open=False)
 
 def execute_query(query, params=None):
 	with pool.connection() as connection:
