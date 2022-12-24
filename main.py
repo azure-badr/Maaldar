@@ -1,8 +1,7 @@
 import discord
-from discord import app_commands
 from discord.ext import commands
 
-from util import configuration
+from util import *
 
 class MaaldarBot(commands.Bot):
     def __init__(self, intents):
@@ -23,4 +22,5 @@ intents = discord.Intents(members=True, guilds=True)
 bot = MaaldarBot(intents=intents)
 
 if __name__ == "__main__":
+  print(configuration)
   bot.run(configuration["token"])

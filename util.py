@@ -25,8 +25,6 @@ except KeyError:
 		open("config.json", 'r').read()
 	)
 
-print(configuration)
-
 # Database pool
 pool = psycopg_pool.ConnectionPool(configuration["connection_string"], min_size=5, max_size=50)
 
