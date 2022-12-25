@@ -22,5 +22,4 @@ intents = discord.Intents(members=True, guilds=True)
 bot = MaaldarBot(intents=intents)
 
 if __name__ == "__main__":
-  pool.open(wait=False)
   bot.run(configuration["token"])

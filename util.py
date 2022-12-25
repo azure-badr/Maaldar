@@ -3,18 +3,10 @@ import os
 import re
 import json
 
-import psycopg_pool
-
 import wonderwords
 from PIL import Image, ImageDraw, ImageFont
 
 import logging
-
-logging.basicConfig(
-	level=logging.INFO,
-	format='%(asctime)s %(levelname)s %(message)s'
-)
-logging.getLogger("psycopg.pool").setLevel(logging.INFO)
 
 configuration = {}
 
@@ -32,41 +24,46 @@ except KeyError:
 		open("config.json", 'r').read()
 	)
 
-# Database pool
-pool = psycopg_pool.ConnectionPool(configuration["connection_string"], min_size=5, max_size=50, open=False)
+import psycopg2_pool
+
+pool = psycopg2_pool.ConnectionPool(minconn=5, maxconn=20, dsn=configuration["connection_string"], idle_timeout=60)
 
 def execute_query(query, params=None):
-	with pool.connection() as connection:
-		with connection.cursor() as cursor:
-			if params:
-				cursor.execute(query, params)
-			else:
-				cursor.execute(query)
-			connection.commit()
+  with pool.getconn() as conn:
+    with conn.cursor() as cursor:
+      if params:
+        cursor.execute(query, params)
+      else:
+        cursor.execute(query)
+      conn.commit()
 
 def delete_query(query):
-	execute_query(query)
+  execute_query(query)
 
 def insert_query(query):
-	execute_query(query)
+  execute_query(query)
 
 def insert_with_params(query, params):
-	execute_query(query, params)
+  execute_query(query, params)
 
 def select_one(query):
-	with pool.connection() as connection:
-		with connection.cursor() as cursor:
-			cursor.execute(query)
-			return cursor.fetchone()
+  with pool.getconn() as conn:
+    with conn.cursor() as cursor:
+      cursor.execute(query)
+      result = cursor.fetchone()
+		
+  return result
 
 def select_all(query):
-	with pool.connection() as connection:
-		with connection.cursor() as cursor:
-			cursor.execute(query)
-			return cursor.fetchall()
+  with pool.getconn() as conn:
+    with conn.cursor() as cursor:
+      cursor.execute(query)
+      result = cursor.fetchall()
+		
+  return result
 
 def get_maaldar_user(user_id):
-	return select_one(f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'")
+  return select_one(f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'")
 
 def make_image(dominant_color):
 	image = Image.new(
