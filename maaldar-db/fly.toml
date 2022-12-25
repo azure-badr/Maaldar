@@ -9,7 +9,7 @@ processes = []
 
 [[services.ports]]
   handlers = []
-  port = 10000
+  port = 5432
 
 [checks]
   [checks.pg]
