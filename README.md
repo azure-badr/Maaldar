@@ -34,10 +34,5 @@ Fill <code>config.json</code> with the required information. <hr>
 * `role_ids` contains all the `integer` role IDs that you want the commands to be used by
 * `custom_role_id` contains the `integer` role ID below which the roles should be created and positioned
 * `emoji_server_id` contains the `integer` guild ID where the emojis from palette command will be uploaded
-* `database_name` is the `string` name of your PostgreSQL database
-* `database_user` is the `string` name of your user,
-* `database_password` `string` password
-* `database_host` is the `string` PostgreSQL server host
-* `database_port` is the `integer` server port
+* `connection_string` is connection the `string` (e.g `postgresql://username:password@host:port/database_name`)
 * `token` is the `string` bot token
-* `token` contains the `string` token of your bot
