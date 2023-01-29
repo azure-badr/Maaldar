@@ -1,103 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maaldar Color Picker</title>
-  <link rel="stylesheet" href="../static/index.css">
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.6/jscolor.min.js"></script>
-  <script defer>
-    function handleColorChange(event) {
-      const colorPicker = document.getElementById("color-picker");
-      document.getElementById("username").style.color = colorPicker.value;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maaldar Color Picker</title>
+    <link rel="stylesheet" href="../static/index.css" />
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.6/jscolor.min.js"
+    ></script>
+    <script defer>
+      function handleColorChange(event) {
+        const colorPicker = document.getElementById("color-picker");
+        document.getElementById("username").style.color = colorPicker.value;
+      }
 
-    function setColor(token, roleId) {
-      console.log("Setting color")
-      const colorPicker = document.getElementById("color-picker");
-      const setButton = document.getElementById("set-button");
-      const settingColor = document.getElementById("setting-color");
-      
-      settingColor.classList.toggle("set", false);
-      settingColor.textContent = "Setting color..."
-      settingColor.style.display = "block";
-      
-      setButton.setAttribute("disabled", "true");
+      function setColor(token, roleId) {
+        console.log("Setting color");
+        const colorPicker = document.getElementById("color-picker");
+        const setButton = document.getElementById("set-button");
+        const settingColor = document.getElementById("setting-color");
 
-      fetch("/set_role_color", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          token: token,
-          role_id: roleId,
-          color: colorPicker.value
-        })
-      })
-      .then(response => {
-        setButton.toggleAttribute("disabled");
-        
-        if (response.status === 200) {
-          settingColor.textContent = "Color set!"
-          settingColor.classList.toggle("set", true);
-          return;
-        }
-        
-        if (response.status === 400) {
-          settingColor.innerText = "Invalid color";
-          return;
-        }
+        settingColor.classList.toggle("set", false);
+        settingColor.textContent = "Setting color...";
+        settingColor.style.display = "block";
 
-        settingColor.innerText = "Invalid token";
-      })
-    }
-  </script>
-</head>
-<body>
-  <div class="container">
-    <div class="profile-picture">
-      <img src="{{ avatar_url }}" alt="Profile picture">
-    </div>
-    <div class="message-container">
-      <div class="message-header">
-        <div>
-          <p style="color: {{ color }};" id="username">{{ name }}</p>
-          {% if role_icon != None %}
+        setButton.setAttribute("disabled", "true");
+
+        fetch("/set_role_color", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token: token,
+            role_id: roleId,
+            color: colorPicker.value,
+          }),
+        }).then((response) => {
+          setButton.toggleAttribute("disabled");
+
+          if (response.status === 200) {
+            settingColor.textContent = "Color set!";
+            settingColor.classList.toggle("set", true);
+            return;
+          }
+
+          if (response.status === 400) {
+            settingColor.innerText = "Invalid color";
+            return;
+          }
+
+          settingColor.innerText = "Invalid token";
+        });
+      }
+
+      function setDominantColor(color) {
+        const colorPicker = document.getElementById("color-picker");
+        colorPicker.jscolor.fromString(`#${color}`);
+
+        document.getElementById("username").style.color = colorPicker.value;
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="profile-picture">
+        <img src="{{ avatar_url }}" alt="Profile picture" />
+      </div>
+      <div class="message-container">
+        <div class="message-header">
+          <div>
+            <p style="color: {{ color }};" id="username">{{ name }}</p>
+            {% if role_icon != None %}
             <img src="{{ role_icon }}" />
-          {% endif %}
+            {% endif %}
+          </div>
+          <span>Today at 6:09 PM</span>
         </div>
-        <span>Today at 6:09 PM</span>
-      </div>
-      <div class="message-content">
-        <p>Something came in the mail today</p>
+        <div class="message-content">
+          <p>Something came in the mail today</p>
+        </div>
       </div>
     </div>
-  </div>
-  <div>
-    <p id="setting-color" class="setting-color">Setting color...</p>
-  </div>
-  <div class="color-container">
-    <input 
-      class="color-input"
-      id="color-picker" 
-      data-jscolor="{ 
+    <div>
+      <p id="setting-color" class="setting-color">Setting color...</p>
+    </div>
+    <div class="color-container">
+      <input
+        class="color-input"
+        id="color-picker"
+        data-jscolor="{ 
         onInput: handleColorChange,
         backgroundColor: '#333',
         borderColor: '#333',
         borderRadius: 15,
       }"
-    >
-    <button 
-      class="set-button"
-      id="set-button"
-      onclick="setColor(
+      />
+      <button
+        class="set-button"
+        id="set-button"
+        onclick="setColor(
         `{{ token }}`,
         `{{ role_id }}`
-      )">
-    Set color
-  </button>
-  </div>
-</body>
+      )"
+      >
+        Set color
+      </button>
+    </div>
+    <div class="dominant-colors-container">
+      {% for color in dominant_colors %}
+
+      <div
+        style="background-color: #{{color}};"
+        class="dominant-color"
+        onclick="setDominantColor(
+        `{{ color }}`
+      )"
+      ></div>
+      {% endfor %}
+    </div>
+  </body>
 </html>

@@ -12,7 +12,7 @@ from quart import Quart, render_template, request
 import sys
 import os.path
 
-from config import configuration, select_one
+from config import configuration, select_one, get_dominant_colors
 # Setting up the static files and templates
 sys.path.append(
   os.path.abspath(
@@ -45,6 +45,8 @@ async def main_route(token):
     role = guild.get_role(int(role_id))
     role_icon = role.icon.url if role.icon else None
 
+    dominant_colors = await get_dominant_colors(member.avatar.url)
+
     return await render_template(
       "index.html",
       name=member.nick if member.nick else member.name,
@@ -52,7 +54,8 @@ async def main_route(token):
       role_icon=role_icon,
       role_id=role_id,
       token=token,
-      color=role.color
+      color=role.color,
+      dominant_colors=dominant_colors
     )
 
   return f"<p>Token invalid</p>"
