@@ -2,8 +2,6 @@ import os
 import json
 
 configuration = {}
-with open("config.json", "r") as file:
-  configuration = json.load(file)
 
 try:
   if os.environ["ENVIRONMENT"] == "production":
@@ -13,7 +11,8 @@ try:
 			"token": os.environ["TOKEN"]
     }
 except KeyError:
-  pass
+  with open("config.json", "r") as file:
+  	configuration = json.load(file)
 
 import psycopg2_pool
 
