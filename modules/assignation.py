@@ -1,4 +1,4 @@
-from util import get_maaldar_user
+from util import get_maaldar_user, select_one
 
 import discord
 
@@ -19,15 +19,31 @@ class Assignation:
 			view=view
 		)
 
-	async def unassign(interaction: discord.Interaction, user: discord.Member = None) -> None:
-		await interaction.response.defer()
-		maaldar_user = get_maaldar_user(interaction.user.id)
-		role = interaction.guild.get_role(int(maaldar_user[1]))
-		if not user:
+	async def unassign(interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
+		if user and role:
+			return await interaction.response.send_message("You can't specify both a user and a role, chief.", ephemeral=True)
+		
+		# If no user or role is specified, unassign the user's own role from themselves
+		if not user and not role:
 			await interaction.user.remove_roles(role)
 			await interaction.followup.send(f"Role unassigned from you")
 
 			return
+		
+		await interaction.response.defer()
+
+		# If a role is specified, verify if it's a Maaldar role and unassign it from the user
+		if role:
+			is_maaldar_role = select_one(f"SELECT * FROM maaldar_roles WHERE role_id = {role.id}")
+			if not is_maaldar_role:
+				return await interaction.followup.send("You can only unassign a Maaldar role from yourself", ephemeral=True)
+			
+			await interaction.user.remove_roles(role)
+			return await interaction.followup.send(f"Role unassigned from you", ephemeral=True)
+
+		# If a user is specified, remove your role from them
+		maaldar_user = get_maaldar_user(interaction.user.id)
+		role = interaction.guild.get_role(int(maaldar_user[1]))
 		
 		await user.remove_roles(role)
 		await interaction.followup.send(f"Role unassigned from **{user.name}**")

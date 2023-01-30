@@ -105,9 +105,12 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @app_commands.describe(
     user="User to unassign the role from"
   )
+  @app_commands.describe(
+    role="Maaldar Role to unassign from yourself"
+  )
   @has_custom_role()
-  async def _unassign(self, interaction: discord.Interaction, user: discord.Member = None) -> None:
-    await Assignation.unassign(interaction=interaction, user=user)
+  async def _unassign(self, interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
+    await Assignation.unassign(interaction=interaction, user=user, role=role)
 
   "Palette Command"
   @app_commands.command(
