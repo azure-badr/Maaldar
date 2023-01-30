@@ -34,7 +34,7 @@ class Assignation:
 
 		# If a role is specified, verify if it's a Maaldar role and unassign it from the user
 		if role:
-			is_maaldar_role = select_one(f"SELECT * FROM maaldar_roles WHERE role_id = {role.id}")
+			is_maaldar_role = select_one(f"SELECT * FROM Maaldar WHERE role_id = '{role.id}'")
 			if not is_maaldar_role:
 				return await interaction.followup.send("You can only unassign a Maaldar role from yourself", ephemeral=True)
 			
