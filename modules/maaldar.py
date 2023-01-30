@@ -156,6 +156,9 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_color_picker.error
   @_palette.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
+    print(f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:")
+    print(error)
+
     if not interaction.response.is_done():
       await interaction.response.defer()
     
