@@ -38,6 +38,9 @@ class Assignation:
 			if not is_maaldar_role:
 				return await interaction.followup.send("You can only unassign a Maaldar role from yourself", ephemeral=True)
 			
+			if not role in interaction.user.roles:
+				return await interaction.followup.send("You don't have that role 🧐", ephemeral=True)
+			
 			await interaction.user.remove_roles(role)
 			return await interaction.followup.send(f"Role unassigned from you", ephemeral=True)
 
