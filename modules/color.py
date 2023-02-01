@@ -4,9 +4,6 @@ import discord
 from discord.ext import tasks
 
 class Color:
-  def __init__(self):
-    self.delete_sessions.start()
-
   async def color(interaction: discord.Interaction, color: str = None) -> None:
     await interaction.response.defer()
     
@@ -59,7 +56,3 @@ class Color:
       return
     
     await interaction.followup.send("Please check your DMs for the link to change your color ✨")
-  
-  @tasks.loop(seconds=3600)
-  async def delete_sessions(self):
-    select_one("SELECT delete_expired_sessions();")

@@ -1,5 +1,6 @@
 from discord.ext import commands
 from discord import app_commands
+from discord.ext import tasks
 import discord
 
 from modules.assignation import Assignation
@@ -9,11 +10,12 @@ from modules.role import Role
 from modules.name import Name
 from modules.icon import Icon
 
-from util import get_maaldar_user, configuration
+from util import get_maaldar_user, configuration, select_one
 
 class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
+    self.delete_sessions.start()
   
   class NoCustomRole(app_commands.CheckFailure):
     pass
@@ -174,6 +176,14 @@ class Maaldar(commands.GroupCog, name="maaldar"):
       return
     
     await interaction.followup.send("Sorry, something wrong... :desert:", ephemeral=True)
-
+  
+  @tasks.loop(seconds=3600)
+  async def delete_sessions(self):
+    select_one("SELECT delete_expired_sessions();")
+  
+  @delete_sessions.before_loop
+  async def before_delete_sessions(self):
+    await self.bot.wait_until_ready()
+  
 async def setup(bot: commands.Bot):
   await bot.add_cog(Maaldar(bot), guilds=[discord.Object(id=configuration["guild_id"])])
