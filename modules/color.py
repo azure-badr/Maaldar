@@ -43,7 +43,7 @@ class Color:
       await asyncio.create_task(Color.create_session(interaction))
       return
 
-    await interaction.followup.send(f"Session already exists\n> Please check your DM")
+    await interaction.followup.send("Please check your DMs for the link to change your color ✨")
     return
 
   @staticmethod
@@ -51,12 +51,12 @@ class Color:
     session = create_session_token()
     
     insert_query(f"INSERT INTO MaaldarSession (user_id, token) VALUES ('{interaction.user.id}', '{session}')")
-    await interaction.followup.send("Created session, please check your DM")
+    await interaction.followup.send("I sent you the link in your DMs to change your color ✨")
   
     try:
       await interaction.user.send(
-        "Session created ✨\n"
-        f"> https://pakcord.fly.dev/{session}"
+        "You can now change your color at\n"
+        f"> https://pakcord.fly.dev/{session} ✨"
       )
       """Wait for 1 hour and delete session"""
       await asyncio.sleep(3600)
