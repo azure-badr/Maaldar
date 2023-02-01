@@ -1,10 +1,12 @@
 from util import get_maaldar_user, delete_query, insert_query, select_one, create_session_token
 
 import discord
-
-import asyncio
+from discord.ext import tasks
 
 class Color:
+  def __init__(self):
+    self.delete_sessions.start()
+
   async def color(interaction: discord.Interaction, color: str = None) -> None:
     await interaction.response.defer()
     
@@ -40,29 +42,24 @@ class Color:
     await interaction.response.defer()
     maaldar_session = select_one(f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")
     if not maaldar_session:
-      await asyncio.create_task(Color.create_session(interaction))
-      return
-
-    await interaction.followup.send("Please check your DMs for the link to change your color ✨")
-    return
-
-  @staticmethod
-  async def create_session(interaction):
-    session = create_session_token()
+      session = create_session_token()
     
-    insert_query(f"INSERT INTO MaaldarSession (user_id, token) VALUES ('{interaction.user.id}', '{session}')")
-    await interaction.followup.send("I sent you the link in your DMs to change your color ✨")
-  
-    try:
-      await interaction.user.send(
-        "You can now change your color at\n"
-        f"> https://pakcord.fly.dev/{session} ✨"
-      )
-      """Wait for 1 hour and delete session"""
-      await asyncio.sleep(3600)
-      delete_query(f"DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'"
-)
+      insert_query(f"INSERT INTO MaaldarSession (user_id, token) VALUES ('{interaction.user.id}', '{session}')")
+      await interaction.followup.send("I sent you the link in your DMs to change your color ✨")
+    
+      try:
+        await interaction.user.send(
+          "You can now change your color at\n"
+          f"> https://pakcord.fly.dev/{session} ✨"
+        )
+      except discord.Forbidden:
+        await interaction.followup.send("Please enable your DMs")
+        delete_query(f"DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")
 
-    except discord.Forbidden:
-      await interaction.followup.send("Please enable your DMs")
-      delete_query(f"DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")
+      return
+    
+    await interaction.followup.send("Please check your DMs for the link to change your color ✨")
+  
+  @tasks.loop(seconds=3600)
+  async def delete_sessions(self):
+    select_one("SELECT delete_expired_sessions();")
