@@ -50,7 +50,7 @@ async def main_route(token):
     return await render_template(
       "index.html",
       name=member.nick if member.nick else member.name,
-      avatar_url=member.avatar.url,
+      avatar_url=member.guild_avatar.url if member.guild_avatar else member.avatar.url,
       role_icon=role_icon,
       role_id=role_id,
       token=token,
