@@ -40,8 +40,22 @@ class BoostEvent(commands.Cog):
     if before.premium_since is None:
       return
     
-    # If member was boosting after, return
+    # If member was boosting after
+    # Check if user role exists, then assign role
     if after.premium_since is not None:
+      data = select_one(f"SELECT role_id FROM Maaldar WHERE user_id = '{member.id}'")
+      if data is None:
+        return
+      
+      role_id = data[0]
+      role = member.guild.get_role(int(role_id))
+
+      # The role could be None because the role was deleted
+      if role is None:
+        return
+      
+      await member.add_roles(role)
+      
       return
     
     # Setting member.premium_since.tzinfo to None to avoid naive and aware datetime comparison
