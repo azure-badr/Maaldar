@@ -18,7 +18,10 @@ class Color:
     
     color = color[1:] if color.startswith("#") else color
     try:
-      color = int(color, 16)
+      if color == "random":
+        color = discord.Color.random().value
+      else:
+        color = int(color, 16)
     except ValueError:
       await interaction.followup.send("Please enter the hex value for your color")
       return
