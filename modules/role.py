@@ -31,7 +31,8 @@ class Role:
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		await interaction.followup.send(
 			f"Your role already exists by the name `{role.name}`\n"
-			"> Assign it to yourself by typing `/maaldar assign`"
+			"> Assign it to yourself by typing `/maaldar assign`\n"
+			"> Want to change its name? Type `/maaldar name <new_name>`"
 		)
 	
 	async def position(interaction: discord.Interaction, role_name: str, above: bool):
