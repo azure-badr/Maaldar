@@ -1,6 +1,8 @@
 {
   "guild_id": "The server ID goes here. [Integer value]",
-  "role_ids": ["Role IDs that are able to use Maaldar commands"],
+  "role_ids": [
+    "Role IDs that are able to use Maaldar commands [Integer values]"
+  ],
   "custom_role_id": "The Maaldar (Nitro Booster) role ID goes here. [Integer value]",
   "emoji_server_id": "The server ID where the role color emojis will be uploaded and removed [Integer value]",
   "connection_string": "The connection string (e.g postgresql://username:password@host:port/database_name)",
