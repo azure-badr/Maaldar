@@ -25,6 +25,9 @@ class Assignation:
 		
 		# If no user or role is specified, unassign the user's own role from themselves
 		if not user and not role:
+			maaldar_user = get_maaldar_user(interaction.user.id)
+			role = interaction.guild.get_role(int(maaldar_user[1]))
+			
 			await interaction.user.remove_roles(role)
 			await interaction.followup.send(f"Role unassigned from you")
 
