@@ -40,22 +40,21 @@ class Color:
 
   async def color_picker(interaction: discord.Interaction) -> None:
     await interaction.response.defer()
+    
     maaldar_session = select_one(f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")
     if not maaldar_session:
       session = create_session_token()
-    
+      
       insert_query(f"INSERT INTO MaaldarSession (user_id, token) VALUES ('{interaction.user.id}', '{session}')")
-      await interaction.followup.send("I sent you the link in your DMs to change your color ✨")
-    
-      try:
-        await interaction.user.send(
-          "You can now change your color at\n"
-          f"> https://pakcord.fly.dev/{session} ✨"
-        )
-      except discord.Forbidden:
-        await interaction.followup.send("Please enable your DMs")
-        delete_query(f"DELETE FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")
-
+      await interaction.followup.send(
+        "You can now change your color at\n"
+        f"> https://pakcord.fly.dev/{session} ✨",
+        ephemeral=True
+      )
       return
     
-    await interaction.followup.send("Please check your DMs for the link to change your color ✨")
+    await interaction.followup.send(
+      "You can change your color at\n"
+      f"> https://pakcord.fly.dev/{maaldar_session[1]} ✨",
+      ephemeral=True
+    )
