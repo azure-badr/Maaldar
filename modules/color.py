@@ -39,8 +39,8 @@ class Color:
     await interaction.followup.send(f"New role color set ✨")
 
   async def color_picker(interaction: discord.Interaction) -> None:
-    await interaction.response.defer()
-    
+    await interaction.response.defer(thinking=True, ephemeral=True)
+
     maaldar_session = select_one(f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")
     if not maaldar_session:
       session = create_session_token()
@@ -48,13 +48,11 @@ class Color:
       insert_query(f"INSERT INTO MaaldarSession (user_id, token) VALUES ('{interaction.user.id}', '{session}')")
       await interaction.followup.send(
         "You can now change your color at\n"
-        f"> https://pakcord.fly.dev/{session} ✨",
-        ephemeral=True
+        f"> https://pakcord.fly.dev/{session} ✨"
       )
       return
     
     await interaction.followup.send(
       "You can change your color at\n"
-      f"> https://pakcord.fly.dev/{maaldar_session[1]} ✨",
-      ephemeral=True
+      f"> https://pakcord.fly.dev/{maaldar_session[1]} ✨"
     )
