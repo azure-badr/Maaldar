@@ -20,8 +20,10 @@ class Assignation:
 		)
 
 	async def unassign(interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
+		await interaction.response.defer()
+
 		if user and role:
-			return await interaction.response.send_message("You can't specify both a user and a role, chief.", ephemeral=True)
+			return await interaction.followup.send("You can't specify both a user and a role, chief.", ephemeral=True)
 		
 		# If no user or role is specified, unassign the user's own role from themselves
 		if not user and not role:
@@ -33,7 +35,6 @@ class Assignation:
 
 			return
 		
-		await interaction.response.defer()
 
 		# If a role is specified, verify if it's a Maaldar role and unassign it from the user
 		if role:
