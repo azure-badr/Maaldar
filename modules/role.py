@@ -41,7 +41,7 @@ class Role:
 		role_id = role_name # role_name gets converted to role_id by the autocomplete function
 		
 		if maaldar_user_role_id == role_id:
-			await interaction.response.send_message("You can't move relative to your own role 🤦")
+			await interaction.response.send_message("You can't move relative to your own role! Put it above or below another role")
 			return
 		
 		role = interaction.guild.get_role(int(role_id))
