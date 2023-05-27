@@ -48,11 +48,11 @@ class Color:
       insert_query(f"INSERT INTO MaaldarSession (user_id, token) VALUES ('{interaction.user.id}', '{session}')")
       await interaction.followup.send(
         "You can now change your color at\n"
-        f"> https://pakcord.fly.dev/{session} ✨"
+        f"> https://maaldar.pakcord.me/{session} ✨"
       )
       return
     
     await interaction.followup.send(
       "You can change your color at\n"
-      f"> https://pakcord.fly.dev/{maaldar_session[1]} ✨"
+      f"> https://maaldar.pakcord.me/{maaldar_session[1]} ✨"
     )
