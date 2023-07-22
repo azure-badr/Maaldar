@@ -12,6 +12,7 @@ configuration = {}
 
 try:
 	configuration = {
+    "owner_id": int(os.environ["OWNER_ID"]),
 		"custom_role_id": int(os.environ["CUSTOM_ROLE_ID"]),
 		"guild_id": int(os.environ["GUILD_ID"]),
 		"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(",")],

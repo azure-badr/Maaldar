@@ -175,7 +175,15 @@ class Maaldar(commands.GroupCog, name="maaldar"):
       )
       return
     
-    await interaction.followup.send("Sorry, something wrong... :desert:", ephemeral=True)
+    await interaction.followup.send("Sorry, something went wrong... :desert:", ephemeral=True)
+
+    # Send a DM to the owner of the bot about the error
+    guild = interaction.guild
+    member = guild.get_member(configuration["owner_id"])
+
+    await member.send(
+      f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:\n {error}",
+    )
   
   @tasks.loop(seconds=3600)
   async def delete_sessions(self):
