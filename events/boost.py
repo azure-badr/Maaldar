@@ -40,24 +40,39 @@ class BoostEvent(commands.Cog):
     if before.premium_since is None:
       return
     
-    # If member was boosting after
-    # Check if user role exists, then assign role
+    # If member has started boosting
     if after.premium_since is not None:
-      data = select_one(f"SELECT role_id FROM Maaldar WHERE user_id = '{member.id}'")
-      if data is None:
+      maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{member.id}'")
+      if maaldar_role is None:
         return
       
-      role_id = data[0]
-      role = member.guild.get_role(int(role_id))
+      if len(after.guild.roles) == 250:
+        return
 
-      # The role could be None because the role was deleted
-      if role is None:
-        return
-      
+      guild = after.guild
+      # Create the role according to user data and position it
+      role = await guild.create_role(
+        name=maaldar_role[1], 
+        color=discord.Color(int(maaldar_role[2]))
+      )
+
+      await role.edit(
+        position=(guild.get_role(configuration["custom_role_id"]).position - 1)
+      )
       await member.add_roles(role)
+
+      insert_query(
+        f"INSERT INTO Maaldar VALUES ('{member.id}', '{role.id}')"
+      )
       
       return
     
+    """
+    If member has stopped boosting
+    This part handles the case when member has stopped boosting and
+    if the member has not boosted for 180 days total, the role is removed
+    """
+
     # Setting member.premium_since.tzinfo to None to avoid naive and aware datetime comparison
     boosting_since = datetime.now() - before.premium_since.replace(tzinfo=None)
     self._check_and_update_duration(member.id, boosting_since)
@@ -73,14 +88,13 @@ class BoostEvent(commands.Cog):
     if data is None:
       return
     
-    role_id = self.cursor.fetchone()[0]
+    role_id = data[0]
     role = member.guild.get_role(int(role_id))
 
     await member.remove_roles(role)
 
     delete_query(
       f"DELETE FROM Maaldar WHERE user_id = '{member.id}';"
-      f"DELETE FROM MaaldarDuration WHERE user_id = '{member.id}'"
     )
 
 async def setup(bot: commands.Bot):
