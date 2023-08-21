@@ -14,11 +14,12 @@ class MaaldarBot(commands.Bot):
     async def setup_hook(self) -> None:
       await self.load_extension("events.boost")
       await self.load_extension("events.user_leave")
+      await self.load_extension("events.user_join")
       await self.load_extension("events.role_remove")
 
       await self.load_extension("modules.maaldar")
 
-intents = discord.Intents(members=True, guilds=True)
+intents = discord.Intents(members=True, guilds=True, )
 bot = MaaldarBot(intents=intents)
 
 if __name__ == "__main__":
