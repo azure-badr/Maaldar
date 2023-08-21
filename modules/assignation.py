@@ -4,7 +4,6 @@ import discord
 
 class Assignation:
 	async def assign(interaction: discord.Interaction, user: discord.Member = None) -> None:
-		await interaction.response.defer()
 		maaldar_user = get_maaldar_user(interaction.user.id)
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		if not user:
@@ -20,8 +19,6 @@ class Assignation:
 		)
 
 	async def unassign(interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
-		await interaction.response.defer()
-
 		if user and role:
 			return await interaction.followup.send("You can't specify both a user and a role, chief.", ephemeral=True)
 		
