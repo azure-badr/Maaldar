@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from util import configuration, insert_with_params, is_old_maaldar, select_one, delete_query
+from util import configuration, get_maaldar_user, insert_with_params, is_old_maaldar, select_one, delete_query
 
 class UserLeaveEvent(commands.Cog):
   def __init__(self, bot):
@@ -11,7 +11,7 @@ class UserLeaveEvent(commands.Cog):
   async def on_member_remove(self, member):
     guild: discord.Guild = member.guild
     
-    maaldar_user = select_one(f"SELECT * FROM Maaldar WHERE user_id = '{member.id}'")
+    maaldar_user = get_maaldar_user(member.id)
     if maaldar_user is None:
       return
     

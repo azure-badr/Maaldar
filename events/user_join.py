@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from util import configuration, insert_query, select_one
+from util import configuration, get_maaldar_user, insert_query, select_one
 
 class UserJoinEvent(commands.Cog):
   def __init__(self, bot):
@@ -16,7 +16,7 @@ class UserJoinEvent(commands.Cog):
   async def on_member_join(self, member):
     guild: discord.Guild = member.guild
 
-    maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{member.id}'")
+    maaldar_role = get_maaldar_user(member.id)
     if maaldar_role is None:
       return
     
