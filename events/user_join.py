@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from util import configuration, select_one
+from util import configuration, insert_query, select_one
 
 class UserJoinEvent(commands.Cog):
   def __init__(self, bot):
@@ -20,16 +20,23 @@ class UserJoinEvent(commands.Cog):
     if maaldar_role is None:
       return
     
+    if len(guild.roles) == 250:
+      return
+    
     # Create the role according to user data and position it
     role = await guild.create_role(
       name=maaldar_role[1], 
       color=discord.Color(int(maaldar_role[2]))
     )
-    
+
     await role.edit(
       position=(guild.get_role(configuration["custom_role_id"]).position - 1)
     )
     await member.add_roles(role)
+
+    insert_query(
+      f"INSERT INTO Maaldar VALUES ('{member.id}', '{role.id}')"
+    )
   
 
 async def setup(bot: commands.Bot):
