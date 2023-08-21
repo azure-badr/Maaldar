@@ -16,7 +16,7 @@ class UserJoinEvent(commands.Cog):
   async def on_member_join(self, member):
     guild: discord.Guild = member.guild
 
-    maaldar_role = get_maaldar_user(member.id)
+    maaldar_role = select_one(f"SELECT * From MaaldarRoles WHERE user_id = '{member.id}'")
     if maaldar_role is None:
       return
     
