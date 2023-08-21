@@ -22,6 +22,11 @@ class Maaldar(commands.GroupCog, name="maaldar"):
 
   def has_custom_role():
     async def predicate(interaction: discord.Interaction):
+      if interaction.command.name == "color-picker":
+        await interaction.response.defer(thinking=True, ephemeral=True)
+      else:
+        await interaction.response.defer()
+
       maaldar_user = get_maaldar_user(interaction.user.id)
       if maaldar_user is not None:
         return True

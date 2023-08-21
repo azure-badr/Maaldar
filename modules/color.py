@@ -5,8 +5,6 @@ from discord.ext import tasks
 
 class Color:
   async def color(interaction: discord.Interaction, color: str = None) -> None:
-    await interaction.response.defer()
-    
     maaldar_user = get_maaldar_user(interaction.user.id)
     
     if color is None:
@@ -39,8 +37,6 @@ class Color:
     await interaction.followup.send(f"New role color set ✨")
 
   async def color_picker(interaction: discord.Interaction) -> None:
-    await interaction.response.defer(thinking=True, ephemeral=True)
-
     maaldar_session = select_one(f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")
     if not maaldar_session:
       session = create_session_token()

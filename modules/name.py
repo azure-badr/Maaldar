@@ -11,7 +11,6 @@ class Name:
       )
 			return
 
-		await interaction.response.defer()
 		maaldar_user = get_maaldar_user(interaction.user.id)
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		await role.edit(name=new_name)

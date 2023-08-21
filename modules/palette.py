@@ -16,7 +16,6 @@ class Palette:
     self.reset_usage.start()
   
   async def palette(interaction: discord.Interaction) -> None:
-    await interaction.response.defer()
     maaldar_user = get_maaldar_user(interaction.user.id)
     
     # Cooldown check
