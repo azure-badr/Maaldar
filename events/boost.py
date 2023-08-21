@@ -94,7 +94,7 @@ class BoostEvent(commands.Cog):
     await member.remove_roles(role)
 
     delete_query(
-      f"DELETE FROM Maaldar WHERE user_id = '{member.id}';"
+      f"DELETE FROM Maaldar WHERE user_id = '{member.id}'"
     )
 
 async def setup(bot: commands.Bot):
