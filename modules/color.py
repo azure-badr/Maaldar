@@ -1,4 +1,4 @@
-from util import get_maaldar_user, delete_query, insert_query, select_one, create_session_token
+from util import get_maaldar_user, delete_query, insert_query, select_one, create_session_token, COLORS
 
 import discord
 from discord.ext import tasks
@@ -14,6 +14,9 @@ class Color:
       await interaction.followup.send("Role color set to default")
       return
     
+    if color in COLORS:
+      color = COLORS[color]
+
     color = color[1:] if color.startswith("#") else color
     try:
       if color == "random":

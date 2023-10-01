@@ -11,6 +11,42 @@ import logging
 
 configuration = {}
 
+from discord import Color
+COLORS = {
+	"teal": Color.teal(),
+	"dark_teal": Color.dark_teal(),
+	"brand green": Color.brand_green(),
+	"green": Color.green(),
+	"dark_green": Color.dark_green(),
+	"blue": Color.blue(),
+	"dark_blue": Color.dark_blue(),
+	"magenta": Color.magenta(),
+	"dark magenta": Color.dark_magenta(),
+	"gold": Color.gold(),
+	"dark gold": Color.dark_gold(),
+	"orange": Color.orange(),
+	"dark orange": Color.dark_orange(),
+	"brand red": Color.brand_red(),
+	"red": Color.red(),
+	"dark red": Color.dark_red(),
+	"lighter grey": Color.lighter_grey(),
+	"lighter gray": Color.lighter_gray(),
+	"light grey": Color.light_grey(),
+	"light gray": Color.light_gray(),
+	"dark grey": Color.dark_grey(),
+	"dark gray": Color.dark_gray(),
+	"darker grey": Color.darker_grey(),
+	"darker gray": Color.darker_gray(),
+	"og blurple": Color.og_blurple(),
+	"blurple": Color.blurple(),
+	"greyple": Color.greyple(),
+	"dark theme": Color.dark_theme(),
+	"fuchsia": Color.fuchsia(),
+	"yellow": Color.yellow(),
+	"light_embed": Color.light_embed(),
+	"dark embed": Color.dark_embed(),
+}
+
 try:
 	configuration = {
     "owner_id": int(os.environ["OWNER_ID"]),
