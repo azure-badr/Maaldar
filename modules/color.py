@@ -14,8 +14,7 @@ class Color:
       await interaction.followup.send("Role color set to default")
       return
     
-    if color in COLORS:
-      color = COLORS[color]
+    color = COLORS.get(color.lower(), color)
 
     color = color[1:] if color.startswith("#") else color
     try:
