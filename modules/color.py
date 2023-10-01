@@ -16,8 +16,8 @@ class Color:
     
     color = COLORS.get(color.lower(), color)
 
-    color = color[1:] if color.startswith("#") else color
     try:
+      color = color[1:] if color.startswith("#") else color
       if color == "random":
         color = discord.Color.random().value
       else:
@@ -25,6 +25,8 @@ class Color:
     except ValueError:
       await interaction.followup.send("Please enter the hex value for your color")
       return
+    except AttributeError: # Handle checking '#' on color from COLORS dict
+      pass
 
     role = interaction.guild.get_role(int(maaldar_user[1]))
     try:
