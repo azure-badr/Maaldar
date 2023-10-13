@@ -46,6 +46,12 @@ class BoostEvent(commands.Cog):
       if maaldar_role is None:
         return
       
+      # Check if user already has a Maaldar role in the server
+      data = select_one(f"SELECT * FROM Maaldar WHERE user_id = '{member.id}'")
+      if data is not None:
+        print("[!] Maaldar role already exists. Skipping...")
+        return
+      
       if len(after.guild.roles) == 250:
         print("[!] Role limit reached. Cannot create role.")
         return
