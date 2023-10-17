@@ -3,15 +3,16 @@ from discord.ext import commands
 
 from util import configuration, select_one, insert_query, delete_query
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 class BoostEvent(commands.Cog):
-  DAYS_REQUIRED_FOR_ROLE = 180
+  # Seconds in 180 days
+  DAYS_IN_SECONDS_REQUIRED_FOR_ROLE = 15_552_000
 
   def __init__(self, bot):
     self.bot = bot
   
-  def _check_and_update_duration(self, member_id: str, boosting_since: timedelta) -> None:
+  def _check_and_update_duration(self, member_id: str, boosting_since: int) -> None:
     data = select_one(f"SELECT * FROM MaaldarDuration WHERE user_id = '{member_id}'")
     if data is None:
       insert_query(f"INSERT INTO MaaldarDuration VALUES ('{member_id}', '{boosting_since}')")
@@ -86,21 +87,22 @@ class BoostEvent(commands.Cog):
 
       # Setting member.premium_since.tzinfo to None to avoid naive and aware datetime comparison
       boosting_since = datetime.now() - before.premium_since.replace(tzinfo=None)
+      boosting_since = boosting_since.total_seconds()
       self._check_and_update_duration(member.id, boosting_since)
       
       boosting_since = select_one(
         f"SELECT boosting_since FROM MaaldarDuration WHERE user_id = '{member.id}'"
-      ) # timedelta object
+      )
       
-      if boosting_since[0] >= timedelta(days=self.DAYS_REQUIRED_FOR_ROLE):
-        print(f"[!] {member} has boosted for {self.DAYS_REQUIRED_FOR_ROLE} days. Keeping role...")
+      if boosting_since[0] >= self.DAYS_IN_SECONDS_REQUIRED_FOR_ROLE:
+        print(f"[!] {member} has boosted for {self.DAYS_IN_SECONDS_REQUIRED_FOR_ROLE} days. Keeping role...")
         return
       
       data = select_one(f"SELECT role_id FROM Maaldar WHERE user_id = '{member.id}'")
       if data is None:
         return
       
-      print(f"[!] {member} has not boosted for {self.DAYS_REQUIRED_FOR_ROLE} days. Removing role...")
+      print(f"[!] {member} has not boosted for {self.DAYS_IN_SECONDS_REQUIRED_FOR_ROLE} days. Removing role...")
       role_id = data[0]
       role = member.guild.get_role(int(role_id))
 
