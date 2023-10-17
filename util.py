@@ -103,14 +103,14 @@ def select_all(query):
 def get_maaldar_user(user_id):
   return select_one(f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'")
 
-DAYS_REQUIRED_FOR_ROLE = 180
+DAYS_IN_SECONDS_REQUIRED_FOR_ROLE = 15_552_000
 
 def is_old_maaldar(user_id):
 	data = select_one(f"SELECT boosting_since FROM MaaldarDuration WHERE user_id = '{user_id}'")
 	if data is None:
 		return False
   
-	return data[0] >= timedelta(days=DAYS_REQUIRED_FOR_ROLE)
+	return data[0] >= DAYS_IN_SECONDS_REQUIRED_FOR_ROLE
 
 def make_image(dominant_color):
 	image = Image.new(
