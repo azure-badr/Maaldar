@@ -15,7 +15,7 @@ from util import get_maaldar_user, configuration, select_one
 class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
-    self.delete_sessions.start()
+    # self.delete_sessions.start()
   
   class NoCustomRole(app_commands.CheckFailure):
     pass
@@ -137,6 +137,9 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
   async def _color_picker(self, interaction: discord.Interaction) -> None:
+    await interaction.followup.send("The command is currently disabled. Please use `/maaldar color` instead.", ephemeral=True)
+    return
+
     await Color.color_picker(interaction=interaction)
   
   @app_commands.command(
