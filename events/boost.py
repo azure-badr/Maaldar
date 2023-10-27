@@ -87,7 +87,7 @@ class BoostEvent(commands.Cog):
 
       # Setting member.premium_since.tzinfo to None to avoid naive and aware datetime comparison
       boosting_since = datetime.now() - before.premium_since.replace(tzinfo=None)
-      boosting_since = boosting_since.total_seconds()
+      boosting_since = int(boosting_since.total_seconds())
       self._check_and_update_duration(member.id, boosting_since)
       
       boosting_since = select_one(
