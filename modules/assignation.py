@@ -20,8 +20,9 @@ class Assignation:
 
 	async def unassign(interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
 		if user and role:
-			return await interaction.followup.send("You can't specify both a user and a role.", ephemeral=True)
-		
+			return await interaction.response.send_message("You can't specify both a user and a role.", ephemeral=True)
+
+		await interaction.response.defer()
 		# If a role is specified, verify if it's a Maaldar role and unassign it from the user
 		if role:
 			is_maaldar_role = select_one(f"SELECT * FROM Maaldar WHERE role_id = '{role.id}'")
