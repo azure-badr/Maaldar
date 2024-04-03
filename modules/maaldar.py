@@ -31,10 +31,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
       if maaldar_user is not None:
         return True
 
-      error = "You do not have role yet! :desert:"
-      if not interaction.command.name == "unassign":
-        error += "\nMake one by typing `/maaldar role`"
-      
+      error = "You do not have role yet! :desert:\nMake one by typing `/maaldar role`"
       raise Maaldar.NoCustomRole(error)
     
     return app_commands.check(predicate)
@@ -115,7 +112,6 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @app_commands.describe(
     role="Maaldar Role to unassign from yourself"
   )
-  @has_custom_role()
   async def _unassign(self, interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
     await Assignation.unassign(interaction=interaction, user=user, role=role)
 
