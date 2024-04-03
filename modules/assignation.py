@@ -20,19 +20,8 @@ class Assignation:
 
 	async def unassign(interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
 		if user and role:
-			return await interaction.followup.send("You can't specify both a user and a role, chief.", ephemeral=True)
+			return await interaction.followup.send("You can't specify both a user and a role.", ephemeral=True)
 		
-		# If no user or role is specified, unassign the user's own role from themselves
-		if not user and not role:
-			maaldar_user = get_maaldar_user(interaction.user.id)
-			role = interaction.guild.get_role(int(maaldar_user[1]))
-			
-			await interaction.user.remove_roles(role)
-			await interaction.followup.send(f"Role unassigned from you")
-
-			return
-		
-
 		# If a role is specified, verify if it's a Maaldar role and unassign it from the user
 		if role:
 			is_maaldar_role = select_one(f"SELECT * FROM Maaldar WHERE role_id = '{role.id}'")
@@ -44,13 +33,23 @@ class Assignation:
 			
 			await interaction.user.remove_roles(role)
 			return await interaction.followup.send(f"Role unassigned from you", ephemeral=True)
-
-		# If a user is specified, remove your role from them
-		maaldar_user = get_maaldar_user(interaction.user.id)
-		role = interaction.guild.get_role(int(maaldar_user[1]))
 		
-		await user.remove_roles(role)
-		await interaction.followup.send(f"Role unassigned from **{user.name}**")
+		# If a user is specified, remove your role from them
+		if user:
+			maaldar_user = get_maaldar_user(interaction.user.id)
+			role = interaction.guild.get_role(int(maaldar_user[1]))
+			
+			await user.remove_roles(role)
+			return await interaction.followup.send(f"Role unassigned from **{user.name}**")
+		
+		# If no user or role is specified, unassign the user's own role from themselves
+		maaldar_user = get_maaldar_user(interaction.user.id)
+		if maaldar_user is None:
+			return interaction.followup.send(f"You do not have role yet! :desert:\nMake one by typing `/maaldar role`")
+		
+		role = interaction.guild.get_role(int(maaldar_user[1]))
+		await interaction.user.remove_roles(role)
+		await interaction.followup.send(f"Role unassigned from you")
 
 
 class Dropdown(discord.ui.Select):
