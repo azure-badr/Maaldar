@@ -164,7 +164,7 @@ def rgb_to_hex(rgb):
 
 def match_url_regex(string):
 	# It works 🤷‍♀️
-	return re.findall(r'(?:http\:|https\:)?\/\/.*\.(?:png|jpg)', string)
+	return re.findall(r'(?:http\:|https\:)?\/\/.*\.(?:png|jpg)', string, re.IGNORECASE)
 
 def create_session_token() -> str:
 	random_word = wonderwords.RandomWord()
