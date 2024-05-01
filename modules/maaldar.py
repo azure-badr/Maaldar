@@ -140,18 +140,11 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   
   @app_commands.command(
     name="position",
-    description="Positions your role relative to other roles"
-  )
-  @app_commands.describe(
-    role_name="Name of the role to position your role relative to",
-    above="True if you want your role to be above the specified role. False if you want it to be below"
-  )
-  @app_commands.autocomplete(
-    role_name=Role.position_autocomplete, 
+    description="Positions your role to other Maaldar roles"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
-  async def _position(self, interaction: discord.Interaction, role_name: str, above: bool) -> None:
-    await Role.position(interaction=interaction, role_name=role_name, above=above)
+  async def _position(self, interaction: discord.Interaction) -> None:
+    await Role.position(interaction=interaction)
   
   @_name.error
   @_role.error
