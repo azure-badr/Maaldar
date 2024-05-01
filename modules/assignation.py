@@ -4,7 +4,7 @@ import discord
 
 class Assignation:
 	async def assign(interaction: discord.Interaction, user: discord.Member = None) -> None:
-		maaldar_user = get_maaldar_user(interaction.user.id)
+		maaldar_user = interaction.extras["maaldar_user"]
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		if not user:
 			await interaction.user.add_roles(role)

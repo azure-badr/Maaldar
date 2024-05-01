@@ -1,5 +1,3 @@
-from util import get_maaldar_user
-
 import discord
 
 class Name:
@@ -11,7 +9,7 @@ class Name:
       )
 			return
 
-		maaldar_user = get_maaldar_user(interaction.user.id)
+		maaldar_user = interaction.extras["maaldar_user"]
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		await role.edit(name=new_name)
 		await interaction.followup.send(f"Role name set to **{new_name}** ✨")

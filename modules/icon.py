@@ -1,4 +1,4 @@
-from util import get_maaldar_user, match_url_regex
+from util import match_url_regex
 
 import discord
 
@@ -6,7 +6,7 @@ import aiohttp
 
 class Icon:
 	async def icon(interaction: discord.Interaction, attachment: discord.Attachment = None, url: str = None) -> None:
-		maaldar_user = get_maaldar_user(interaction.user.id)
+		maaldar_user = interaction.extras["maaldar_user"]
 		role: discord.Role = interaction.guild.get_role(int(maaldar_user[1]))
 
 		if not url and not attachment:

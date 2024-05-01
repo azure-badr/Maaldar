@@ -1,11 +1,11 @@
-from util import get_maaldar_user, delete_query, insert_query, select_one, create_session_token, COLORS
+from util import insert_query, select_one, create_session_token, COLORS
 
 import discord
 from discord.ext import tasks
 
 class Color:
   async def color(interaction: discord.Interaction, color: str = None) -> None:
-    maaldar_user = get_maaldar_user(interaction.user.id)
+    maaldar_user = interaction.extras["maaldar_user"]
     
     if color is None:
       role = interaction.guild.get_role(int(maaldar_user[1]))

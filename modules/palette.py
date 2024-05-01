@@ -1,4 +1,4 @@
-from util import configuration, get_maaldar_user, concatenate_images, make_image, rgb_to_hex
+from util import configuration, concatenate_images, make_image, rgb_to_hex
 
 import discord
 from discord.ext import tasks
@@ -16,7 +16,7 @@ class Palette:
     self.reset_usage.start()
   
   async def palette(interaction: discord.Interaction) -> None:
-    maaldar_user = get_maaldar_user(interaction.user.id)
+    maaldar_user = interaction.extras["maaldar_user"]
     
     # Cooldown check
     user_reattempt = interaction.user.id in Palette.cooldowns

@@ -29,6 +29,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
 
       maaldar_user = get_maaldar_user(interaction.user.id)
       if maaldar_user is not None:
+        interaction.extras["maaldar_user"] = maaldar_user
         return True
 
       error = "You do not have role yet! :desert:\nMake one by typing `/maaldar role`"
