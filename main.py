@@ -19,7 +19,7 @@ class MaaldarBot(commands.Bot):
 
       await self.load_extension("modules.maaldar")
 
-intents = discord.Intents(members=True, guilds=True, )
+intents = discord.Intents(members=True, guilds=True)
 bot = MaaldarBot(intents=intents)
 
 if __name__ == "__main__":
