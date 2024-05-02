@@ -15,7 +15,7 @@ from util import get_maaldar_user, configuration, select_one
 class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
-    # self.delete_sessions.start()
+    self.delete_sessions.start()
   
   class NoCustomRole(app_commands.CheckFailure):
     pass
