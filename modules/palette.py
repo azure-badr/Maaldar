@@ -130,6 +130,10 @@ class Dropdown(discord.ui.Select):
     )
 
   async def callback(self, interaction: discord.Interaction):
+    if interaction.user != self.user:
+      await interaction.response.send_message("You can't interact with this dropdown", ephemeral=True)
+      return
+
     try:
       if interaction.user == self.user:
         await self.role.edit(

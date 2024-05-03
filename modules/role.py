@@ -58,12 +58,13 @@ class Role:
 			await interaction.followup.send("You have way too many roles! 😱 - time to free up some space! \nType `/maaldar unassign` to get started")
 			return
 
-		view = DropdownPosition(user_maaldar_roles, maaldar_user_role_id)
+		view = DropdownPosition(user_maaldar_roles, maaldar_user_role_id, interaction.user.id)
 		await interaction.followup.send("Select a role that you want to put your role above/below", view=view)
 
 
 class DropdownPositionSelect(discord.ui.Select):
-	def __init__(self, roles: list[discord.Role], user_maaldar_role_id: int):
+	def __init__(self, roles: list[discord.Role], user_maaldar_role_id: int, user_id: int):
+		self.user_id = user_id
 		self.user_maaldar_role_id = user_maaldar_role_id
 		
 		options = [
@@ -79,13 +80,17 @@ class DropdownPositionSelect(discord.ui.Select):
 		)
 	
 	async def callback(self, interaction: discord.Interaction):
+		if not interaction.user.id == self.user_id:
+			await interaction.response.send_message("You didn't execute this command!", ephemeral=True)
+			return
+		
 		role = interaction.guild.get_role(int(self.values[0]))
 		custom_role = interaction.guild.get_role(int(configuration["custom_role_id"]))
 		if role.position >= custom_role.position:
 			await interaction.response.send_message(f"You can't move your role around **{role.name}** since it's above a risky permission role 😬.")
 			return
 
-		view = DropdownAboveBelow(role, self.user_maaldar_role_id)
+		view = DropdownAboveBelow(role, self.user_maaldar_role_id, self.user_id)
 		await interaction.response.edit_message(content=f"Should your role be above or below **{role.name}**?", view=view)
 
 
@@ -95,7 +100,8 @@ class DropdownPosition(discord.ui.View):
     self.add_item(DropdownPositionSelect(*args))
 
 class DropdownAboveBelowSelect(discord.ui.Select):
-	def __init__(self, role: discord.Role, user_maaldar_role_id: int):
+	def __init__(self, role: discord.Role, user_maaldar_role_id: int, user_id):
+		self.user_id = user_id
 		self.role = role
 		self.user_maaldar_role_id = user_maaldar_role_id
 
@@ -117,6 +123,10 @@ class DropdownAboveBelowSelect(discord.ui.Select):
 		)
 	
 	async def callback(self, interaction: discord.Interaction):
+		if not interaction.user.id == self.user_id:
+			await interaction.response.send_message("You didn't execute this command!", ephemeral=True)
+			return
+
 		await interaction.response.defer()
 		role = interaction.guild.get_role(int(self.role.id))
 		user_maaldar_role = interaction.guild.get_role(self.user_maaldar_role_id)
