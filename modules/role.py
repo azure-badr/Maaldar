@@ -145,6 +145,7 @@ class DropdownAboveBelowSelect(discord.ui.Select):
 			await user_maaldar_role.edit(position=role.position - 1)
 		
 		await interaction.followup.send(f"Your role has been put {self.values[0].lower()} **{role.name}** ✨")
+		self.view.stop()
 
 class DropdownAboveBelow(discord.ui.View):
 	def __init__(self, *args):
