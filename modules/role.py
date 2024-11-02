@@ -37,6 +37,7 @@ class Role:
 	
 	async def position(interaction: discord.Interaction):
 		await interaction.response.defer()
+		print("Positioning role for member", interaction.user.id)
 
 		maaldar_user = get_maaldar_user(interaction.user.id)
 		maaldar_user_role_id = int(maaldar_user[1])
@@ -50,11 +51,14 @@ class Role:
 
 		# Get Maaldar roles that the user has except their own
 		user_maaldar_roles = [role for role in interaction.user.roles if role in maaldar_roles and not role.id == maaldar_user_role_id]
+		print(f"Member [{interaction.user.id}] has {len(user_maaldar_roles)} other Maaldar roles (excluding their own Maaldar role)")
 		if len(user_maaldar_roles) == 0:
+			print(f"Member [{interaction.user.id}] has no Maaldar role to position their role around")
 			await interaction.followup.send("You don't have any other Maaldar roles to position your role around! \nGet someone to give you a role first 😅")
 			return
 	
 		if len(user_maaldar_roles) >= 25:
+			print(f"Member [{interaction.user.id}] has too many Maaldar roles")
 			await interaction.followup.send("You have way too many roles! 😱 - time to free up some space! \nType `/maaldar unassign` to get started")
 			return
 
@@ -89,6 +93,8 @@ class DropdownPositionSelect(discord.ui.Select):
 		if role.position >= custom_role.position:
 			await interaction.response.send_message(f"You can't move your role around **{role.name}** since it's above a risky permission role 😬.")
 			return
+
+		print(f"Member [{interaction.user.id}] attempting to position ther role around {role.name} [{role.id}]")
 
 		view = DropdownAboveBelow(role, self.user_maaldar_role_id, self.user_id)
 		await interaction.response.edit_message(content=f"Should your role be above or below **{role.name}**?", view=view)
@@ -131,14 +137,20 @@ class DropdownAboveBelowSelect(discord.ui.Select):
 		role = interaction.guild.get_role(int(self.role.id))
 		user_maaldar_role = interaction.guild.get_role(self.user_maaldar_role_id)
 
+		print(f"Member [{interaction.user.id}] is positioning their role {self.values[0].lower()} {role.name} [{role.id}]")
+		print(f"Member's [{interaction.user.id}] role position:", user_maaldar_role.position)
+		print(f"Other role's position:", role.position)
+
 		if self.values[0].lower() == "above":
 			if user_maaldar_role.position == role.position + 1:
+				print(f"Member's [{interaction.user.id}] role is already above the other role")
 				await interaction.followup.send(f"Your role is already above **{role.name}**.")
 				return
 		
 			await user_maaldar_role.edit(position=role.position)
 		else:
 			if user_maaldar_role.position == role.position - 1:
+				print(f"Member's [{interaction.user.id}] role is already below the other role")
 				await interaction.followup.send(f"Your role is already below **{role.name}**.")
 				return
 
