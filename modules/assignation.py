@@ -38,6 +38,12 @@ class Assignation:
 		# If a user is specified, remove your role from them
 		if user:
 			maaldar_user = get_maaldar_user(interaction.user.id)
+			if not maaldar_user:
+				return await interaction.followup.send(
+					"You must be boosting the server to unassign your role from someone.\n"
+					"Want to remove someone else's role from yourself? Try `/maaldar unassign role`"
+				)
+			
 			role = interaction.guild.get_role(int(maaldar_user[1]))
 			
 			await user.remove_roles(role)
