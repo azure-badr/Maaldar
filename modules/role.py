@@ -16,7 +16,7 @@ class Role:
 		maaldar_user = get_maaldar_user(member.id)
 		if maaldar_user is None:
 			if name.lower() in configuration["filtered_role_names"]:
-				return await interaction.followup("Use a different role name 🙄")
+				return await interaction.followup.send("Use a different role name 🙄")
 
 			guild = interaction.guild
 
