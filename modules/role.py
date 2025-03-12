@@ -15,6 +15,9 @@ class Role:
 		member = interaction.user
 		maaldar_user = get_maaldar_user(member.id)
 		if maaldar_user is None:
+			if name.lower() in configuration["filtered_role_names"]:
+				return interaction.followup("Use a differeent role name 🙄")
+
 			guild = interaction.guild
 
 			role = await guild.create_role(name=name)
