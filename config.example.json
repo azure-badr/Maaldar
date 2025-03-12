@@ -6,5 +6,9 @@
   "custom_role_id": "The Maaldar (Nitro Booster) role ID goes here. [Integer value]",
   "emoji_server_id": "The server ID where the role color emojis will be uploaded and removed [Integer value]",
   "connection_string": "The connection string (e.g postgresql://username:password@host:port/database_name)",
-  "token": "Bot token [String value]"
+  "token": "Bot token [String value]",
+  "owner_id": "Bot owner ID goees here. [Integer value]",
+  "filtered_role_names": [
+    "Role names that the user cannot change their role name to"
+  ]
 }
