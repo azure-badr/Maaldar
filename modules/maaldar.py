@@ -12,6 +12,8 @@ from modules.icon import Icon
 
 from util import get_maaldar_user, configuration, select_one
 
+from psycopg2.errors import UndefinedFunction
+
 class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
@@ -183,7 +185,13 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   
   @tasks.loop(seconds=3600)
   async def delete_sessions(self):
-    select_one("SELECT delete_expired_sessions();")
+    print("Deleting expired sessions for color-picker...")
+    try:
+      select_one("SELECT delete_expired_sessions();")
+    except UndefinedFunction as error:
+      print("[!] delete_expired_sessions() function does not exist on your database.")
+      print("[!] Run maaldar-db/maaldar_session.sql on your database.")
+      print(error)
   
   @delete_sessions.before_loop
   async def before_delete_sessions(self):
