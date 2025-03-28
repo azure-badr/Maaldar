@@ -42,7 +42,7 @@ class Role:
 		await interaction.response.defer()
 		print("Positioning role for member", interaction.user.id)
 
-		maaldar_user = get_maaldar_user(interaction.user.id)
+		maaldar_user = interaction.extras["maaldar_user"]
 		maaldar_user_role_id = int(maaldar_user[1])
 
 		# Get Maaldar role ids
