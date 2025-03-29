@@ -14,6 +14,8 @@ from util import get_maaldar_user, configuration, select_one
 
 from psycopg2.errors import UndefinedFunction
 
+import traceback
+
 class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
@@ -157,7 +159,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_position.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
     print(f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:")
-    print(error)
+    print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
 
     if not interaction.response.is_done():
       await interaction.response.defer()
