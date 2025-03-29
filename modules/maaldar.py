@@ -145,6 +145,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     description="Positions your role to other Maaldar roles"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
   async def _position(self, interaction: discord.Interaction) -> None:
     await Role.position(interaction=interaction)
   
@@ -159,7 +160,6 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_position.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
     print(f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:")
-    print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
 
     if not interaction.response.is_done():
       await interaction.response.defer()
@@ -175,6 +175,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
       )
       return
     
+    print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
     await interaction.followup.send("Sorry, something went wrong... :desert:", ephemeral=True)
 
     # Send a DM to the owner of the bot about the error

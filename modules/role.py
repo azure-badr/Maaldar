@@ -39,7 +39,6 @@ class Role:
 		)
 	
 	async def position(interaction: discord.Interaction):
-		await interaction.response.defer()
 		print("Positioning role for member", interaction.user.id)
 
 		maaldar_user = get_maaldar_user(interaction.user.id)
