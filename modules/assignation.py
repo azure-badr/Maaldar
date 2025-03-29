@@ -14,7 +14,7 @@ class Assignation:
 		
 		view = DropdownView(user, role)
 		await interaction.followup.send(
-			f"{user.mention}, {interaction.user.name} is trying to assign you their role", 
+			f"{user.mention}, {interaction.user.name} is trying to assign you their role. \nMake sure they can see this channel!", 
 			view=view
 		)
 
