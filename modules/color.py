@@ -1,36 +1,68 @@
+import discord.http
 from util import insert_query, select_one, create_session_token, COLORS
 
 import discord
-from discord.ext import tasks
 
 class Color:
-  async def color(interaction: discord.Interaction, color: str = None) -> None:
+  async def color(interaction: discord.Interaction, color: str = None, secondary_color: str = None) -> None:
     maaldar_user = interaction.extras["maaldar_user"]
     
+    role = interaction.guild.get_role(int(maaldar_user[1]))
     if color is None:
-      role = interaction.guild.get_role(int(maaldar_user[1]))
       await role.edit(color=discord.Color.default())
       
       await interaction.followup.send("Role color set to default")
       return
     
-    # FIX: color = COLORS.get(color.lower(), color)
+    if color == "holographic":
+      await interaction.client.http.request(
+        discord.http.Route(
+          "PATCH",
+          "/guilds/{guild_id}/roles/{role_id}",
+          guild_id=interaction.guild.id,
+          role_id=role.id
+          ),
+          json={ 
+            "colors": {
+              "primary_color": 11127295,
+              "secondary_color": 16759788,
+              "tertiary_color": 16761760
+            } 
+          },
+        )
+      
+      await interaction.followup.send("Your role color is now holographic! 🌈")
+      return
 
     color = color[1:] if color.startswith("#") else color
+    secondary_color = secondary_color[1:] if secondary_color and secondary_color.startswith("#") else secondary_color
     try:
-      if color == "random":
-        color = discord.Color.random().value
-      else:
-        color = int(color, 16)
+      color = int(color, 16)
+      secondary_color = int(secondary_color, 16) if secondary_color else secondary_color
     except ValueError:
       await interaction.followup.send("Please enter the hex value for your color")
       return
 
-    role = interaction.guild.get_role(int(maaldar_user[1]))
     try:
-      await role.edit(color=discord.Color(color))
+      if secondary_color:
+        await interaction.client.http.request(
+          discord.http.Route(
+            "PATCH",
+            "/guilds/{guild_id}/roles/{role_id}",
+            guild_id=interaction.guild.id,
+            role_id=role.id
+          ),
+          json={ 
+            "colors": {
+              "primary_color": color,
+              "secondary_color": secondary_color,
+            } 
+          },
+        )
+      else:
+        await role.edit(color=discord.Color(color))
     except:
-      await interaction.response.send(
+      await interaction.followup.send(
         "Please enter a valid hex value\n"
         "> Use Google color picker and copy the HEX value"
       )

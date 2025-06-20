@@ -20,6 +20,8 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
     self.delete_sessions.start()
+
+  color = app_commands.Group(name="color", description="For setting simple, gradient and holographic colors")
   
   class NoCustomRole(app_commands.CheckFailure):
     pass
@@ -66,18 +68,22 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   async def _name(self, interaction: discord.Interaction, new_name: str) -> None:
     await Name.name(interaction=interaction, new_name=new_name)
 
-  # Color Command
-  @app_commands.command(
-    name="color", 
-    description="Sets a new color for your role. Specifying no option resets your color"
-  )
+  # Color Commands
+  @color.command(name="set", description="Sets a new color for your role")
   @app_commands.describe(
-    color="New color for your role (e.g #000000)"
+    color="Primary color for your role (e.g #86ADEB)", 
+    secondary_color="Secondary color for a gradient role style (e.g #AAAAAA)"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
-  async def _color(self, interaction: discord.Interaction, color: str = None) -> None:
-    await Color.color(interaction=interaction, color=color)
+  async def _color(self, interaction: discord.Interaction, color: str = None, secondary_color: str = None):
+    await Color.color(interaction=interaction, color=color, secondary_color=secondary_color)
+
+  @color.command(name="holographic", description="Sets your role color to be holographic")
+  @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
+  async def _holographic_color(self, interaction: discord.Interaction):
+    await Color.color(interaction=interaction, color="holographic")
 
   # Icon Command
   @app_commands.command(
@@ -152,6 +158,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_name.error
   @_role.error
   @_color.error
+  @_holographic_color.error
   @_icon.error
   @_assign.error
   @_unassign.error
