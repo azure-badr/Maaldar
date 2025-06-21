@@ -8,7 +8,7 @@ class UserLeaveEvent(commands.Cog):
     self.bot = bot
   
   @commands.Cog.listener()
-  async def on_member_remove(self, member):
+  async def on_member_remove(self, member: discord.Member):
     guild: discord.Guild = member.guild
     
     maaldar_user = get_maaldar_user(member.id)
@@ -20,6 +20,7 @@ class UserLeaveEvent(commands.Cog):
     role = guild.get_role(int(maaldar_user[1]))
 
     if is_old_maaldar(member.id):
+      print(f"[!] A Maaldar user {member.id} who has been boosting for more than 3 months has left the server. Saving their role if it exists....")
       maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{member.id}'")
       # If the Maaldar role already exists in the database, update role name and color
       if maaldar_role is None:
@@ -32,6 +33,8 @@ class UserLeaveEvent(commands.Cog):
           f"UPDATE MaaldarRoles SET role_name = %s, role_color = %s WHERE user_id = '{member.id}'",
           (role.name, role.color.value)
         )
+      
+      print(f"[!] Saved role for {member.id}")
     
     await role.delete()
 

@@ -13,7 +13,7 @@ class UserJoinEvent(commands.Cog):
   an old Maaldar
   """  
   @commands.Cog.listener()
-  async def on_member_join(self, member):
+  async def on_member_join(self, member: discord.Member):
     guild: discord.Guild = member.guild
 
     maaldar_role = select_one(f"SELECT * From MaaldarRoles WHERE user_id = '{member.id}'")
@@ -24,19 +24,20 @@ class UserJoinEvent(commands.Cog):
       return
     
     # Create the role according to user data and position it
+    print(f"[!] An old Maaldar user {member.id} has joined the server. Recreating their role...")
     role = await guild.create_role(
       name=maaldar_role[1], 
       color=discord.Color(int(maaldar_role[2]))
     )
 
-    await role.edit(
+    role = await role.edit(
       position=(guild.get_role(configuration["custom_role_id"]).position - 1)
     )
     await member.add_roles(role)
-
     insert_query(
       f"INSERT INTO Maaldar VALUES ('{member.id}', '{role.id}')"
     )
+    print(f"[!] Created role {role.id} at position {role.position} and assigned to {member.id}")
   
 
 async def setup(bot: commands.Bot):
