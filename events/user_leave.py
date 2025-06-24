@@ -24,7 +24,6 @@ class UserLeaveEvent(commands.Cog):
       maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{member.id}'")
       # If the Maaldar role already exists in the database, update role name and color
       _, role_color = await get_role_color(self.bot, role)
-      print("User role_style:", role_color)
       if maaldar_role is None:
         insert_with_params(
           f"INSERT INTO MaaldarRoles VALUES ('{member.id}', %s, %s)",

@@ -14,6 +14,7 @@ class Color:
       await interaction.followup.send("Role color set to default")
       return
     
+    print(f"[!] Setting color for {interaction.user.id}, params: {color}, {secondary_color}")
     if color == "holographic":
       await interaction.client.http.request(
         discord.http.Route(
@@ -44,23 +45,20 @@ class Color:
       return
 
     try:
-      if secondary_color:
-        await interaction.client.http.request(
-          discord.http.Route(
-            "PATCH",
-            "/guilds/{guild_id}/roles/{role_id}",
-            guild_id=interaction.guild.id,
-            role_id=role.id
-          ),
-          json={ 
-            "colors": {
-              "primary_color": color,
-              "secondary_color": secondary_color,
-            } 
-          },
-        )
-      else:
-        await role.edit(color=discord.Color(color))
+      await interaction.client.http.request(
+        discord.http.Route(
+          "PATCH",
+          "/guilds/{guild_id}/roles/{role_id}",
+          guild_id=interaction.guild.id,
+          role_id=role.id
+        ),
+        json={ 
+          "colors": {
+            "primary_color": color,
+            "secondary_color": secondary_color,
+          } 
+        },
+      )
     except:
       await interaction.followup.send(
         "Please enter a valid hex value\n"
