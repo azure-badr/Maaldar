@@ -1,4 +1,4 @@
-from util import get_maaldar_user, select_one
+from util import get_maaldar_user, select_one, has_role_style
 
 import discord
 
@@ -12,6 +12,10 @@ class Assignation:
 
 			return
 		
+		if has_role_style(user.id):
+			await interaction.followup.send("You cannot assign your role to others while it has a gradient style applied")
+			return
+
 		view = DropdownView(user, role)
 		await interaction.followup.send(
 			f"{user.mention}, {interaction.user.name} is trying to assign you their role. \nMake sure they can see this channel!", 
