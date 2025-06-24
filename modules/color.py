@@ -1,5 +1,5 @@
 import discord.http
-from util import insert_query, select_one, create_session_token, COLORS
+from util import insert_query, select_one, insert_with_params, create_session_token, is_old_maaldar, set_maaldar_role_info, COLORS
 
 import discord
 
@@ -9,6 +9,7 @@ class Color:
     
     role = interaction.guild.get_role(int(maaldar_user[1]))
     if color is None:
+      set_maaldar_role_info(interaction.user.id, role.name, "0")
       await role.edit(color=discord.Color.default())
       
       await interaction.followup.send("Role color set to default")
@@ -16,6 +17,7 @@ class Color:
     
     print(f"[!] Setting color for {interaction.user.id}, params: {color}, {secondary_color}")
     if color == "holographic":
+      payload = { "colors": { "primary_color": 11127295, "secondary_color": 16759788, "tertiary_color": 16761760 } }
       await interaction.client.http.request(
         discord.http.Route(
           "PATCH",
@@ -23,16 +25,11 @@ class Color:
           guild_id=interaction.guild.id,
           role_id=role.id
           ),
-          json={ 
-            "colors": {
-              "primary_color": 11127295,
-              "secondary_color": 16759788,
-              "tertiary_color": 16761760
-            } 
-          },
+          json=payload,
         )
-      
       await interaction.followup.send("Your role color is now holographic! 🌈")
+
+      set_maaldar_role_info(interaction.user.id, role.name, payload)
       return
 
     color = color[1:] if color.startswith("#") else color
@@ -45,6 +42,7 @@ class Color:
       return
 
     try:
+      payload = { "colors": { "primary_color": color, "secondary_color": secondary_color }}
       await interaction.client.http.request(
         discord.http.Route(
           "PATCH",
@@ -52,12 +50,7 @@ class Color:
           guild_id=interaction.guild.id,
           role_id=role.id
         ),
-        json={ 
-          "colors": {
-            "primary_color": color,
-            "secondary_color": secondary_color,
-          } 
-        },
+        json=payload,
       )
     except:
       await interaction.followup.send(
@@ -67,6 +60,8 @@ class Color:
       return
 
     await interaction.followup.send(f"New role color set ✨")
+    set_maaldar_role_info(interaction.user.id, role.name, payload)
+
 
   async def color_picker(interaction: discord.Interaction) -> None:
     maaldar_session = select_one(f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")

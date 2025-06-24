@@ -115,6 +115,27 @@ def is_old_maaldar(user_id):
   
 	return data[0] >= DAYS_IN_SECONDS_REQUIRED_FOR_ROLE
 
+def set_maaldar_role_info(user_id, role_name, role_color: str | dict):
+	if not is_old_maaldar(user_id): return
+
+	# Support for payload based role_color
+	if type(role_color) is dict:
+		role_color = ",".join([str(color) for color in role_color["colors"].values() if color ])
+
+	maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{user_id}'")
+	if maaldar_role is None:
+		insert_with_params(
+			f"INSERT INTO MaaldarRoles VALUES ('{user_id}', %s, %s)",
+			(role_name, role_color)
+		)
+	else:
+		insert_with_params(
+			f"UPDATE MaaldarRoles SET role_name = %s, role_color = %s WHERE user_id = '{user_id}'",
+			(role_name, role_color)
+		)
+	print("[!] Set Maaldar role color")
+
+
 def make_image(dominant_color):
 	image = Image.new(
 		mode="RGBA", 
@@ -176,6 +197,13 @@ def create_session_token() -> str:
 	session = "".join(session_tokens)
 	
 	return session
+
+# honestly, this is crazy but will do for now
+async def has_role_style(user_id):
+	data = select_one(f"SELECT role_color FROM MaaldarRoles WHERE user_id = {user_id}")
+	role_color: str = data[0]
+	return role_color.count(',') > 0
+    
 
 async def get_role_color(bot: commands.Bot, role: discord.Role):
 	role = await bot.http.request(
