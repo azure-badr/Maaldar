@@ -200,7 +200,7 @@ def create_session_token() -> str:
 
 # honestly, this is crazy but will do for now
 async def has_role_style(user_id):
-	data = select_one(f"SELECT role_color FROM MaaldarRoles WHERE user_id = {user_id}")
+	data = select_one(f"SELECT role_color FROM MaaldarRoles WHERE user_id = '{user_id}'")
 	role_color: str = data[0]
 	return role_color.count(',') > 0
     

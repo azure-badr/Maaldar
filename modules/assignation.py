@@ -12,7 +12,7 @@ class Assignation:
 
 			return
 		
-		if has_role_style(user.id):
+		if await has_role_style(interaction.user.id):
 			await interaction.followup.send("You cannot assign your role to others while it has a gradient style applied")
 			return
 
