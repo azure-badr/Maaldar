@@ -3,6 +3,8 @@ from util import insert_query, select_one, insert_with_params, create_session_to
 
 import discord
 
+import random
+
 class Color:
   async def color(interaction: discord.Interaction, color: str = None, secondary_color: str = None) -> None:
     maaldar_user = interaction.extras["maaldar_user"]
@@ -21,6 +23,17 @@ class Color:
     
     print(f"[!] Setting color for {interaction.user.id}, params: {color}, {secondary_color}")
     if color == "holographic":
+      messages = [
+        "Maybe in another server, a holographic role could be a reality...",
+        "A holographic role? In this server? Yeah, sure...",
+        "😂 😂",
+        "Role color set to holographic ✨.... In your dreams...",
+        "Yeah, I'm working on it...",
+        "HOLOGRAPHIC ROLE? ASK THE MODS WHAT HAPPENED TO THAT...",
+        "We'll see about that..."
+      ]
+      return await interaction.followup.send(random.choice(messages))
+    
       payload = { "colors": { "primary_color": 11127295, "secondary_color": 16759788, "tertiary_color": 16761760 } }
       await interaction.client.http.request(
         discord.http.Route(
