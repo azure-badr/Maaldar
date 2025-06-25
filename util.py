@@ -115,7 +115,7 @@ def is_old_maaldar(user_id):
   
 	return data[0] >= DAYS_IN_SECONDS_REQUIRED_FOR_ROLE
 
-def set_maaldar_role_info(user_id, role_name, role_color: str | dict):
+def set_maaldar_role_info(user_id, role_name, role_color):
 	if not is_old_maaldar(user_id): return
 
 	# Support for payload based role_color
