@@ -1,4 +1,4 @@
-from util import get_maaldar_user, select_one, has_role_style
+from util import get_maaldar_user, select_one, get_role_color
 
 import discord
 
@@ -12,7 +12,8 @@ class Assignation:
 
 			return
 		
-		if await has_role_style(interaction.user.id):
+		role_style, _ = await get_role_color(interaction.client, role)
+		if role_style in ["gradient", "holographic"]:
 			await interaction.followup.send("You cannot assign your role to others while it has a gradient style applied")
 			return
 
