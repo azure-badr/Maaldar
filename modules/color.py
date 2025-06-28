@@ -10,6 +10,10 @@ class Color:
     maaldar_user = interaction.extras["maaldar_user"]
     
     role = interaction.guild.get_role(int(maaldar_user[1]))
+
+    if color is None and secondary_color:
+      return await interaction.followup.send("To set a gradient, you need to set both the options for `color` and `secondary_color`")
+
     if color is None:
       set_maaldar_role_info(interaction.user.id, role.name, "0")
       await role.edit(color=discord.Color.default())
@@ -49,8 +53,8 @@ class Color:
       set_maaldar_role_info(interaction.user.id, role.name, payload)
       return
 
-    color = color[1:] if color.startswith("#") else color
-    secondary_color = secondary_color[1:] if secondary_color and secondary_color.startswith("#") else secondary_color
+    color = color[1:].strip() if color.startswith("#") else color
+    secondary_color = secondary_color[1:].strip() if secondary_color and secondary_color.startswith("#") else secondary_color
     try:
       color = int(color, 16)
       secondary_color = int(secondary_color, 16) if secondary_color else secondary_color
