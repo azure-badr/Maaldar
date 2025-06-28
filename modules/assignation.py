@@ -3,6 +3,8 @@ from util import get_maaldar_user, select_one, get_role_color
 import discord
 
 class Assignation:
+	TOTAL_MESSAGE_LENGTH = 2000
+	
 	async def assign(interaction: discord.Interaction, user: discord.Member = None) -> None:
 		maaldar_user = interaction.extras["maaldar_user"]
 		role = interaction.guild.get_role(int(maaldar_user[1]))
@@ -66,8 +68,12 @@ class Assignation:
 	async def list(interaction: discord.Interaction):
 		maaldar_user = interaction.extras["maaldar_user"]
 		role = interaction.guild.get_role(int(maaldar_user[1]))
+		
+		message = f"People who currently have your role ```{', '.join([member.name for member in role.members])}```"
+		if len(message) > Assignation.TOTAL_MESSAGE_LENGTH:
+			return await interaction.followup.send("You have way too many members in your role 🙄")
 
-		await interaction.followup.send(f"People who currently have your role: {', '.join([member.name for member in role.members])}")
+		await interaction.followup.send(message)
 
 
 
