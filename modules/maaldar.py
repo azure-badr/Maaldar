@@ -125,6 +125,14 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   )
   async def _unassign(self, interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
     await Assignation.unassign(interaction=interaction, user=user, role=role)
+  
+  @app_commands.command(
+    name="list",
+    description="Lists people who currently have your role"
+  )
+  @has_custom_role()
+  async def _list(self, interaction: discord.Interaction):
+    await Assignation.list(interaction=interaction)
 
   "Palette Command"
   @app_commands.command(
@@ -165,6 +173,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_color_picker.error
   @_palette.error
   @_position.error
+  @_list.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
     print(f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:")
 

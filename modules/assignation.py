@@ -14,7 +14,7 @@ class Assignation:
 		
 		role_style, _ = await get_role_color(interaction.client, role)
 		if role_style in ["gradient", "holographic"]:
-			await interaction.followup.send("You cannot assign your role to others while it has a gradient style applied")
+			await interaction.followup.send("You cannot assign your role to others while it has a gradient style applied.\nSee who has your role with `/maaldar list`")
 			return
 
 		view = DropdownView(user, role)
@@ -62,6 +62,13 @@ class Assignation:
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		await interaction.user.remove_roles(role)
 		await interaction.followup.send(f"Role unassigned from you")
+	
+	async def list(interaction: discord.Interaction):
+		maaldar_user = interaction.extras["maaldar_user"]
+		role = interaction.guild.get_role(int(maaldar_user[1]))
+
+		await interaction.followup.send(f"People who currently have your role: {', '.join([member.name for member in role.members])}")
+
 
 
 class Dropdown(discord.ui.Select):

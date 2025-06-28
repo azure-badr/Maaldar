@@ -23,7 +23,7 @@ class Color:
 
     if color == "holographic" or secondary_color:
       if len(role.members) > 1:
-        return await interaction.followup.send("You cannot set a style for your role while it is assigned to other people 🙄")
+        return await interaction.followup.send("You cannot set a style for your role while it is assigned to other people 🙄\nSee who has your role with `/maaldar list`")
     
     print(f"[!] Setting color for {interaction.user.id}, params: {color}, {secondary_color}")
     if color == "holographic":
