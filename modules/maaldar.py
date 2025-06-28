@@ -69,7 +69,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     await Name.name(interaction=interaction, new_name=new_name)
 
   # Color Commands
-  @color.command(name="set", description="Sets a new color for your role")
+  @color.command(name="set", description="Sets a new color for your role. Leave options empty to set the default color")
   @app_commands.describe(
     color="Primary color for your role (e.g #86ADEB)", 
     secondary_color="Secondary color for a gradient role style (e.g #AAAAAA)"
