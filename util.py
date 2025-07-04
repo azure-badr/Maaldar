@@ -217,8 +217,8 @@ async def get_role_color(bot: commands.Bot, role: discord.Role):
 
 	print(f"Received colors for role", role)
 	colors = role["colors"]
-	if colors["secondary_color"]:
-		if colors["tertiary_color"]:
+	if colors["secondary_color"] is not None:
+		if colors["tertiary_color"] is not None:
 			return "holographic", f"{colors['primary_color']},{colors['secondary_color']},{colors['tertiary_color']}"
 		return "gradient", f"{colors['primary_color']},{colors['secondary_color']}"
 	return "primary", colors["primary_color"]
