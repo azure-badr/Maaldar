@@ -18,6 +18,8 @@ class MaaldarBot(commands.Bot):
       await self.load_extension("events.role_remove")
 
       await self.load_extension("modules.maaldar")
+      
+      await self.load_extension("modules.util.admin")
 
 intents = discord.Intents(members=True, guilds=True)
 bot = MaaldarBot(intents=intents)
