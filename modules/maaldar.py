@@ -175,7 +175,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_position.error
   @_list.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
-    print(f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:")
+    print(f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:", error)
 
     if not interaction.response.is_done():
       await interaction.response.defer()

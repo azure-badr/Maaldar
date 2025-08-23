@@ -1,4 +1,4 @@
-from util import get_maaldar_user, select_one, get_role_color
+from util import get_maaldar_user, select_one
 
 import discord
 
@@ -6,16 +6,15 @@ class Assignation:
 	TOTAL_MESSAGE_LENGTH = 2000
 	
 	async def assign(interaction: discord.Interaction, user: discord.Member = None) -> None:
-		maaldar_user = interaction.extras["maaldar_user"]
-		role = interaction.guild.get_role(int(maaldar_user[1]))
+		_, maaldar_user_role_id = interaction.extras["maaldar_user"]
+		role = interaction.guild.get_role(int(maaldar_user_role_id))
 		if not user:
 			await interaction.user.add_roles(role)
 			await interaction.followup.send(f"Role assigned to you ✨")
 
 			return
 		
-		role_style, _ = await get_role_color(interaction.client, role)
-		if role_style in ["gradient", "holographic"]:
+		if role.tertiary_color is not None or role.secondary_color is not None:
 			await interaction.followup.send("You cannot assign your role to others while it has a gradient style applied.\nSee who has your role with `/maaldar list`")
 			return
 

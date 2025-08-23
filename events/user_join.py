@@ -7,27 +7,15 @@ class UserJoinEvent(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
   
-  def _get_payload_from_maaldar_role_color(self, role_color_str: str):
-    colors = str(role_color_str).split(',')
-    role_color_payload = {}
+  def _get_colors(self, role_color_str: str):
+    color_keys = ["color", "secondary_color", "tertiary_color"]
+    colors = role_color_str.split(',')
 
-    if len(colors) == 3:
-      primary, secondary, tertiary = colors
-      role_color_payload["colors"] = {
-        "primary_color": primary,
-        "secondary_color": secondary,
-        "tertiary_color": tertiary
-      }
-    elif len(colors) == 2:
-      primary, secondary = colors
-      role_color_payload["colors"] = {
-        "primary_color": primary,
-        "secondary_color": secondary
-      }
-    else:
-      role_color_payload["color"] = role_color_str
-    
-    return role_color_payload
+    return {
+        key: int(value)
+        for key, value in zip(color_keys, colors)
+        if value
+    }
   
   
   """
@@ -51,20 +39,11 @@ class UserJoinEvent(commands.Cog):
       name=maaldar_role[1]
     )
 
+    role_color_str: str = maaldar_role[2]
+    role_colors = self._get_colors(role_color_str)
     role = await role.edit(
+      **role_colors,
       position=(guild.get_role(configuration["custom_role_id"]).position - 1)
-    )
-    
-    role_color: str = maaldar_role[2]
-    payload = self._get_payload_from_maaldar_role_color(role_color)
-    await self.bot.http.request(
-      discord.http.Route(
-        "PATCH",
-        "/guilds/{guild_id}/roles/{role_id}",
-        guild_id=member.guild.id,
-        role_id=role.id
-      ),
-      json=payload
     )
 
     await member.add_roles(role)

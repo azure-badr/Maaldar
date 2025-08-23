@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-from util import configuration, get_maaldar_user, insert_with_params, is_old_maaldar, select_one, delete_query, get_role_color
+from util import configuration, get_maaldar_user, insert_with_params, is_old_maaldar, select_one, delete_query
 
 class UserLeaveEvent(commands.Cog):
   def __init__(self, bot: commands.Bot):
@@ -22,8 +22,11 @@ class UserLeaveEvent(commands.Cog):
     if is_old_maaldar(member.id):
       print(f"[!] A Maaldar user {member.id} who has been boosting for more than 3 months has left the server. Saving their role if it exists....")
       maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{member.id}'")
+
+      colors = (role.color, role.secondary_color, role.tertiary_color)
+      role_color = ",".join(str(int(c)) for c in colors if c is not None)
+
       # If the Maaldar role already exists in the database, update role name and color
-      _, role_color = await get_role_color(self.bot, role)
       if maaldar_role is None:
         insert_with_params(
           f"INSERT INTO MaaldarRoles VALUES ('{member.id}', %s, %s)",

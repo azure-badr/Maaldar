@@ -7,7 +7,6 @@ from datetime import timedelta
 import wonderwords
 from PIL import Image, ImageDraw, ImageFont
 
-import discord.http
 import discord
 from discord.ext import commands
 
@@ -70,6 +69,7 @@ import psycopg2_pool
 pool = psycopg2_pool.ConnectionPool(minconn=5, maxconn=20, dsn=configuration["connection_string"], idle_timeout=60)
 
 def execute_query(query, params=None):
+  print("[!]", query, params)
   with pool.getconn() as conn:
     with conn.cursor() as cursor:
       if params:
@@ -88,6 +88,7 @@ def insert_with_params(query, params):
   execute_query(query, params)
 
 def select_one(query):
+  print("[!]", query)
   with pool.getconn() as conn:
     with conn.cursor() as cursor:
       cursor.execute(query)
@@ -96,6 +97,7 @@ def select_one(query):
   return result
 
 def select_all(query):
+  print("[!]", query)
   with pool.getconn() as conn:
     with conn.cursor() as cursor:
       cursor.execute(query)
@@ -117,10 +119,6 @@ def is_old_maaldar(user_id):
 
 def set_maaldar_role_info(user_id, role_name, role_color):
 	if not is_old_maaldar(user_id): return
-
-	# Support for payload based role_color
-	if type(role_color) is dict:
-		role_color = ",".join([str(color) for color in role_color["colors"].values() if color ])
 
 	maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{user_id}'")
 	if maaldar_role is None:
@@ -203,22 +201,3 @@ async def has_role_style(user_id):
 	data = select_one(f"SELECT role_color FROM MaaldarRoles WHERE user_id = '{user_id}'")
 	role_color: str = data[0]
 	return role_color.count(',') > 0
-    
-
-async def get_role_color(bot: commands.Bot, role: discord.Role):
-	role = await bot.http.request(
-		discord.http.Route(
-			"GET",
-			"/guilds/{guild_id}/roles/{role_id}",
-			guild_id=role.guild.id,
-			role_id=role.id
-		)
-	)
-
-	print(f"Received colors for role", role)
-	colors = role["colors"]
-	if colors["secondary_color"] is not None:
-		if colors["tertiary_color"] is not None:
-			return "holographic", f"{colors['primary_color']},{colors['secondary_color']},{colors['tertiary_color']}"
-		return "gradient", f"{colors['primary_color']},{colors['secondary_color']}"
-	return "primary", colors["primary_color"]

@@ -1,15 +1,13 @@
-import discord.http
-from util import insert_query, select_one, insert_with_params, create_session_token, is_old_maaldar, set_maaldar_role_info, COLORS
+from util import insert_query, select_one, create_session_token, is_old_maaldar, set_maaldar_role_info
 
 import discord
 
-import random
-
 class Color:
+  HOLOGRAPHIC_COLORS = [11127295, 16759788, 16761760]
+
   async def color(interaction: discord.Interaction, color: str = None, secondary_color: str = None) -> None:
-    maaldar_user = interaction.extras["maaldar_user"]
-    
-    role = interaction.guild.get_role(int(maaldar_user[1]))
+    _, maaldar_role_id = interaction.extras["maaldar_user"]
+    role = interaction.guild.get_role(int(maaldar_role_id))
 
     if color is None and secondary_color:
       return await interaction.followup.send("To set a gradient, you need to set both the options for `color` and `secondary_color`")
@@ -28,20 +26,11 @@ class Color:
     print(f"[!] Setting color for {interaction.user.id}, params: {color}, {secondary_color}")
     if color == "holographic":
       return await interaction.followup.send("Holographic roles are currently disabled. For more information, contact mods.")
-    
-      payload = { "colors": { "primary_color": 11127295, "secondary_color": 16759788, "tertiary_color": 16761760 } }
-      await interaction.client.http.request(
-        discord.http.Route(
-          "PATCH",
-          "/guilds/{guild_id}/roles/{role_id}",
-          guild_id=interaction.guild.id,
-          role_id=role.id
-          ),
-          json=payload,
-        )
-      await interaction.followup.send("Your role color is now holographic! 🌈")
+      
+      color, secondary_color, tertiary_color = Color.HOLOGRAPHIC_COLORS
+      await role.edit(color=color, secondary_color=secondary_color, tertiary_color=tertiary_color)
 
-      set_maaldar_role_info(interaction.user.id, role.name, payload)
+      set_maaldar_role_info(interaction.user.id, role.name, "11127295,16759788,16761760")
       return
 
     color = color[1:].strip() if color.startswith("#") else color
@@ -54,16 +43,7 @@ class Color:
       return
 
     try:
-      payload = { "colors": { "primary_color": color, "secondary_color": secondary_color }}
-      await interaction.client.http.request(
-        discord.http.Route(
-          "PATCH",
-          "/guilds/{guild_id}/roles/{role_id}",
-          guild_id=interaction.guild.id,
-          role_id=role.id
-        ),
-        json=payload,
-      )
+      await role.edit(color=color, secondary_color=secondary_color)
     except:
       await interaction.followup.send(
         "Please enter a valid hex value\n"
@@ -72,7 +52,10 @@ class Color:
       return
 
     await interaction.followup.send(f"New role color set ✨")
-    set_maaldar_role_info(interaction.user.id, role.name, payload)
+
+    # we need the #000000 hex colors, that is why the rc is not None check
+    role_colors = [str(rc) for rc in [color, secondary_color] if rc is not None]
+    set_maaldar_role_info(interaction.user.id, role.name, ",".join(role_colors))
 
 
   async def color_picker(interaction: discord.Interaction) -> None:
