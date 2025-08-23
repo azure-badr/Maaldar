@@ -7,7 +7,8 @@ from datetime import timedelta
 import wonderwords
 from PIL import Image, ImageDraw, ImageFont
 
-import logging
+import discord
+from discord.ext import commands
 
 configuration = {}
 
@@ -68,6 +69,7 @@ import psycopg2_pool
 pool = psycopg2_pool.ConnectionPool(minconn=5, maxconn=20, dsn=configuration["connection_string"], idle_timeout=60)
 
 def execute_query(query, params=None):
+  print("[!]", query, params)
   with pool.getconn() as conn:
     with conn.cursor() as cursor:
       if params:
@@ -86,6 +88,7 @@ def insert_with_params(query, params):
   execute_query(query, params)
 
 def select_one(query):
+  print("[!]", query)
   with pool.getconn() as conn:
     with conn.cursor() as cursor:
       cursor.execute(query)
@@ -94,6 +97,7 @@ def select_one(query):
   return result
 
 def select_all(query):
+  print("[!]", query)
   with pool.getconn() as conn:
     with conn.cursor() as cursor:
       cursor.execute(query)
@@ -112,6 +116,23 @@ def is_old_maaldar(user_id):
 		return False
   
 	return data[0] >= DAYS_IN_SECONDS_REQUIRED_FOR_ROLE
+
+def set_maaldar_role_info(user_id, role_name, role_color):
+	if not is_old_maaldar(user_id): return
+
+	maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{user_id}'")
+	if maaldar_role is None:
+		insert_with_params(
+			f"INSERT INTO MaaldarRoles VALUES ('{user_id}', %s, %s)",
+			(role_name, role_color)
+		)
+	else:
+		insert_with_params(
+			f"UPDATE MaaldarRoles SET role_name = %s, role_color = %s WHERE user_id = '{user_id}'",
+			(role_name, role_color)
+		)
+	print("[!] Set Maaldar role color")
+
 
 def make_image(dominant_color):
 	image = Image.new(
@@ -174,3 +195,9 @@ def create_session_token() -> str:
 	session = "".join(session_tokens)
 	
 	return session
+
+# honestly, this is crazy but will do for now
+async def has_role_style(user_id):
+	data = select_one(f"SELECT role_color FROM MaaldarRoles WHERE user_id = '{user_id}'")
+	role_color: str = data[0]
+	return role_color.count(',') > 0

@@ -1,42 +1,62 @@
-from util import insert_query, select_one, create_session_token, COLORS
+from util import insert_query, select_one, create_session_token, is_old_maaldar, set_maaldar_role_info
 
 import discord
-from discord.ext import tasks
 
 class Color:
-  async def color(interaction: discord.Interaction, color: str = None) -> None:
-    maaldar_user = interaction.extras["maaldar_user"]
-    
+  HOLOGRAPHIC_COLORS = [11127295, 16759788, 16761760]
+
+  async def color(interaction: discord.Interaction, color: str = None, secondary_color: str = None) -> None:
+    _, maaldar_role_id = interaction.extras["maaldar_user"]
+    role = interaction.guild.get_role(int(maaldar_role_id))
+
+    if color is None and secondary_color:
+      return await interaction.followup.send("To set a gradient, you need to set both the options for `color` and `secondary_color`")
+
     if color is None:
-      role = interaction.guild.get_role(int(maaldar_user[1]))
+      set_maaldar_role_info(interaction.user.id, role.name, "0")
       await role.edit(color=discord.Color.default())
       
       await interaction.followup.send("Role color set to default")
       return
-    
-    # FIX: color = COLORS.get(color.lower(), color)
 
-    color = color[1:] if color.startswith("#") else color
+    if color == "holographic" or secondary_color:
+      if len(role.members) > 1:
+        return await interaction.followup.send("You cannot set a style for your role while it is assigned to other people 🙄\nSee who has your role with `/maaldar list`")
+    
+    print(f"[!] Setting color for {interaction.user.id}, params: {color}, {secondary_color}")
+    if color == "holographic":
+      return await interaction.followup.send("Holographic roles are currently disabled. For more information, contact mods.")
+      
+      color, secondary_color, tertiary_color = Color.HOLOGRAPHIC_COLORS
+      await role.edit(color=color, secondary_color=secondary_color, tertiary_color=tertiary_color)
+
+      set_maaldar_role_info(interaction.user.id, role.name, "11127295,16759788,16761760")
+      return
+
+    color = color[1:].strip() if color.startswith("#") else color
+    secondary_color = secondary_color[1:].strip() if secondary_color and secondary_color.startswith("#") else secondary_color
     try:
-      if color == "random":
-        color = discord.Color.random().value
-      else:
-        color = int(color, 16)
+      color = int(color, 16)
+      secondary_color = int(secondary_color, 16) if secondary_color else secondary_color
     except ValueError:
       await interaction.followup.send("Please enter the hex value for your color")
       return
 
-    role = interaction.guild.get_role(int(maaldar_user[1]))
     try:
-      await role.edit(color=discord.Color(color))
+      await role.edit(color=color, secondary_color=secondary_color)
     except:
-      await interaction.response.send(
+      await interaction.followup.send(
         "Please enter a valid hex value\n"
         "> Use Google color picker and copy the HEX value"
       )
       return
 
     await interaction.followup.send(f"New role color set ✨")
+
+    # we need the #000000 hex colors, that is why the rc is not None check
+    role_colors = [str(rc) for rc in [color, secondary_color] if rc is not None]
+    set_maaldar_role_info(interaction.user.id, role.name, ",".join(role_colors))
+
 
   async def color_picker(interaction: discord.Interaction) -> None:
     maaldar_session = select_one(f"SELECT * FROM MaaldarSession WHERE user_id = '{interaction.user.id}'")

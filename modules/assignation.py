@@ -3,15 +3,21 @@ from util import get_maaldar_user, select_one
 import discord
 
 class Assignation:
+	TOTAL_MESSAGE_LENGTH = 2000
+	
 	async def assign(interaction: discord.Interaction, user: discord.Member = None) -> None:
-		maaldar_user = interaction.extras["maaldar_user"]
-		role = interaction.guild.get_role(int(maaldar_user[1]))
+		_, maaldar_user_role_id = interaction.extras["maaldar_user"]
+		role = interaction.guild.get_role(int(maaldar_user_role_id))
 		if not user:
 			await interaction.user.add_roles(role)
 			await interaction.followup.send(f"Role assigned to you ✨")
 
 			return
 		
+		if role.tertiary_color is not None or role.secondary_color is not None:
+			await interaction.followup.send("You cannot assign your role to others while it has a gradient style applied.\nSee who has your role with `/maaldar list`")
+			return
+
 		view = DropdownView(user, role)
 		await interaction.followup.send(
 			f"{user.mention}, {interaction.user.name} is trying to assign you their role. \nMake sure they can see this channel!", 
@@ -57,6 +63,17 @@ class Assignation:
 		role = interaction.guild.get_role(int(maaldar_user[1]))
 		await interaction.user.remove_roles(role)
 		await interaction.followup.send(f"Role unassigned from you")
+	
+	async def list(interaction: discord.Interaction):
+		maaldar_user = interaction.extras["maaldar_user"]
+		role = interaction.guild.get_role(int(maaldar_user[1]))
+		
+		message = f"People who currently have your role ```{', '.join([member.name for member in role.members])}```"
+		if len(message) > Assignation.TOTAL_MESSAGE_LENGTH:
+			return await interaction.followup.send("You have way too many members in your role 🙄")
+
+		await interaction.followup.send(message)
+
 
 
 class Dropdown(discord.ui.Select):

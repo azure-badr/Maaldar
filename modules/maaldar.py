@@ -20,6 +20,8 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
     self.delete_sessions.start()
+
+  color = app_commands.Group(name="color", description="For setting simple, gradient and holographic colors")
   
   class NoCustomRole(app_commands.CheckFailure):
     pass
@@ -66,18 +68,22 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   async def _name(self, interaction: discord.Interaction, new_name: str) -> None:
     await Name.name(interaction=interaction, new_name=new_name)
 
-  # Color Command
-  @app_commands.command(
-    name="color", 
-    description="Sets a new color for your role. Specifying no option resets your color"
-  )
+  # Color Commands
+  @color.command(name="set", description="Sets a new color for your role. Leave options empty to set the default color")
   @app_commands.describe(
-    color="New color for your role (e.g #000000)"
+    color="Primary color for your role (e.g #86ADEB)", 
+    secondary_color="Secondary color for a gradient role style (e.g #AAAAAA)"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
-  async def _color(self, interaction: discord.Interaction, color: str = None) -> None:
-    await Color.color(interaction=interaction, color=color)
+  async def _color(self, interaction: discord.Interaction, color: str = None, secondary_color: str = None):
+    await Color.color(interaction=interaction, color=color, secondary_color=secondary_color)
+
+  @color.command(name="holographic", description="Sets your role color to be holographic")
+  @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
+  async def _holographic_color(self, interaction: discord.Interaction):
+    await Color.color(interaction=interaction, color="holographic")
 
   # Icon Command
   @app_commands.command(
@@ -119,6 +125,14 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   )
   async def _unassign(self, interaction: discord.Interaction, user: discord.Member = None, role: discord.Role = None) -> None:
     await Assignation.unassign(interaction=interaction, user=user, role=role)
+  
+  @app_commands.command(
+    name="list",
+    description="Lists people who currently have your role"
+  )
+  @has_custom_role()
+  async def _list(self, interaction: discord.Interaction):
+    await Assignation.list(interaction=interaction)
 
   "Palette Command"
   @app_commands.command(
@@ -131,14 +145,14 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     await Palette.palette(interaction=interaction)
 
   "Color Picker Command"
-  @app_commands.command(
-    name="color-picker",
-    description="Pick a color for your role from a colour picker. (Must have DMs enabled)"
-  )
-  @app_commands.checks.has_any_role(*configuration["role_ids"])
-  @has_custom_role()
-  async def _color_picker(self, interaction: discord.Interaction) -> None:
-    await Color.color_picker(interaction=interaction)
+  # @app_commands.command(
+  #   name="color-picker",
+  #   description="Pick a color for your role from a colour picker. (Must have DMs enabled)"
+  # )
+  # @app_commands.checks.has_any_role(*configuration["role_ids"])
+  # @has_custom_role()
+  # async def _color_picker(self, interaction: discord.Interaction) -> None:
+  #   await Color.color_picker(interaction=interaction)
   
   @app_commands.command(
     name="position",
@@ -152,14 +166,16 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_name.error
   @_role.error
   @_color.error
+  @_holographic_color.error
   @_icon.error
   @_assign.error
   @_unassign.error
-  @_color_picker.error
+  # @_color_picker.error
   @_palette.error
   @_position.error
+  @_list.error
   async def commands_error(self, interaction: discord.Interaction, error: commands.CommandError) -> None:
-    print(f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:")
+    print(f"[!] {interaction.user} used {interaction.command.name} command in {interaction.channel.name} and got an error:", error)
 
     if not interaction.response.is_done():
       await interaction.response.defer()
