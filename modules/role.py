@@ -29,6 +29,9 @@ class Role:
 			insert_query(f"INSERT INTO Maaldar VALUES ('{member.id}', '{role.id}')")
 
 			await interaction.followup.send(f"**{name}** created and assigned to you ✨")
+			await interaction.followup.send(
+				"-# **Note**: New roles sometimes end up at the bottom of our role list. If your colors or icons don't work, just ping a mod and let them know."
+      )
 			return
 
 		role = interaction.guild.get_role(int(maaldar_user[1]))
