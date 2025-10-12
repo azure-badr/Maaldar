@@ -21,17 +21,17 @@ class Role:
 			guild = interaction.guild
 
 			role = await guild.create_role(name=name)
-			await role.edit(
-				position=(guild.get_role(configuration["custom_role_id"]).position - 1)
-			)
 			await member.add_roles(role)
 
 			insert_query(f"INSERT INTO Maaldar VALUES ('{member.id}', '{role.id}')")
-
+			
+			print(f"Role {role.name} {role.id} created and assigned to {member.name}")
 			await interaction.followup.send(f"**{name}** created and assigned to you ✨")
-			await interaction.followup.send(
-				"-# **Note**: New roles sometimes end up at the bottom of our role list. If your colors or icons don't work, just ping a mod and let them know."
-      )
+			
+			target_position = guild.get_role(configuration["custom_role_id"]).position - 1
+			await role.edit(position=target_position)
+			print(f"Role {role.name} {role.id} moved to position {target_position}")
+			
 			return
 
 		role = interaction.guild.get_role(int(maaldar_user[1]))
