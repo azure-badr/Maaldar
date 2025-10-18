@@ -11,11 +11,6 @@ body {
   color: #ffffff;
   line-height: 1.6;
   transition: all 0.3s ease;
-  visibility: hidden;
-}
-
-body.loaded {
-  visibility: visible;
 }
 
 /* Discord Theme Colors - Actual Discord Colors */
@@ -81,6 +76,7 @@ body.theme-darker {
 .theme-toggle-container {
   width: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
@@ -512,6 +508,21 @@ body.theme-darker {
   animation: spin 1s linear infinite;
 }
 
+.status-success-icon,
+.status-error-icon {
+  width: 16px;
+  height: 16px;
+  display: none;
+}
+
+.status-success-icon {
+  color: #43b581;
+}
+
+.status-error-icon {
+  color: #f04747;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -531,21 +542,21 @@ body.theme-darker {
 
 .dominant-colors-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
   gap: 0.75rem;
 }
 
 .dominant-color-btn {
   background: none;
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 0;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-  width: 50px;
-  height: 50px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -571,6 +582,38 @@ body.theme-darker {
   background: rgba(0, 0, 0, 0.6);
   padding: 2px 4px;
   border-radius: 4px;
+  display: none;
+}
+
+/* Color Extraction Loader */
+.color-extraction-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.loader-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #40444b;
+  border-top: 3px solid #5865f2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loader-text {
+  color: #b9bbbe;
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Responsive Design */
@@ -613,13 +656,13 @@ body.theme-darker {
   }
   
   .dominant-colors-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 0.5rem;
   }
   
   .dominant-color-btn {
-    width: 40px;
-    height: 40px;
+    width: 28px;
+    height: 28px;
     padding: 0;
   }
 }
