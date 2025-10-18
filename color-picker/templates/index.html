@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Maaldar Color Picker</title>
     <link rel="stylesheet" href="../static/index.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script
       defer
       src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.6/jscolor.min.js"
@@ -20,13 +21,17 @@
         console.log("Setting color");
         const colorPicker = document.getElementById("color-picker");
         const setButton = document.getElementById("set-button");
-        const settingColor = document.getElementById("setting-color");
+        const statusMessage = document.getElementById("setting-color");
+        const statusText = statusMessage.querySelector(".status-text");
 
-        settingColor.classList.toggle("set", false);
-        settingColor.textContent = "Setting color...";
-        settingColor.style.display = "block";
+        // Show loading state
+        statusMessage.classList.remove("success", "error");
+        statusMessage.classList.add("loading");
+        statusText.textContent = "Setting color...";
+        statusMessage.style.display = "flex";
 
-        setButton.setAttribute("disabled", "true");
+        setButton.disabled = true;
+        setButton.classList.add("loading");
 
         fetch("/set_role_color", {
           method: "POST",
@@ -39,87 +44,168 @@
             color: colorPicker.value,
           }),
         }).then((response) => {
-          setButton.toggleAttribute("disabled");
+          setButton.disabled = false;
+          setButton.classList.remove("loading");
 
           if (response.status === 200) {
-            settingColor.textContent = "Color set!";
-            settingColor.classList.toggle("set", true);
+            statusText.textContent = "Color applied successfully!";
+            statusMessage.classList.remove("loading");
+            statusMessage.classList.add("success");
+            // Hide the status message after 3 seconds
+            setTimeout(() => {
+              statusMessage.style.display = "none";
+              statusMessage.classList.remove("success");
+            }, 3000);
             return;
           }
 
           if (response.status === 400) {
-            settingColor.innerText = "Invalid color";
+            statusText.textContent = "Invalid color format";
+            statusMessage.classList.remove("loading");
+            statusMessage.classList.add("error");
+            // Hide the status message after 3 seconds
+            setTimeout(() => {
+              statusMessage.style.display = "none";
+              statusMessage.classList.remove("error");
+            }, 3000);
             return;
           }
 
-          settingColor.innerText = "Invalid token";
+          statusText.textContent = "Invalid token or permission denied";
+          statusMessage.classList.remove("loading");
+          statusMessage.classList.add("error");
+          // Hide the status message after 3 seconds
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+            statusMessage.classList.remove("error");
+          }, 3000);
+        }).catch((error) => {
+          setButton.disabled = false;
+          setButton.classList.remove("loading");
+          statusText.textContent = "Network error occurred";
+          statusMessage.classList.remove("loading");
+          statusMessage.classList.add("error");
+          // Hide the status message after 3 seconds
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+            statusMessage.classList.remove("error");
+          }, 3000);
         });
       }
 
       function setDominantColor(color) {
         const colorPicker = document.getElementById("color-picker");
         colorPicker.jscolor.fromString(`#${color}`);
-
         document.getElementById("username").style.color = colorPicker.value;
       }
     </script>
   </head>
   <body>
-    <div class="container">
-      <div class="profile-picture">
-        <img src="{{ avatar_url }}" alt="Profile picture" />
-      </div>
-      <div class="message-container">
-        <div class="message-header">
-          <div>
-            <p style="color: {{ color }};" id="username">{{ name }}</p>
-            {% if role_icon != None %}
-            <img src="{{ role_icon }}" />
-            {% endif %}
-          </div>
-          <span>Today at 6:09 PM</span>
+    <div class="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <h1 class="title">🎨 Maaldar Color Picker</h1>
+          <p class="subtitle">Customize your role color</p>
         </div>
-        <div class="message-content">
-          <p>Something came in the mail today</p>
-        </div>
-      </div>
-    </div>
-    <div>
-      <p id="setting-color" class="setting-color">Setting color...</p>
-    </div>
-    <div class="color-container">
-      <input
-        class="color-input"
-        id="color-picker"
-        data-jscolor="{ 
-        onInput: handleColorChange,
-        backgroundColor: '#333',
-        borderColor: '#333',
-        borderRadius: 15,
-      }"
-      />
-      <button
-        class="set-button"
-        id="set-button"
-        onclick="setColor(
-        `{{ token }}`,
-        `{{ role_id }}`
-      )"
-      >
-        Set color
-      </button>
-    </div>
-    <div class="dominant-colors-container">
-      {% for color in dominant_colors %}
+      </header>
 
-      <div
-        style="background-color: #{{color}};"
-        class="dominant-color"
-        onclick="setDominantColor(
-        `{{ color }}`
-      )"
-      ></div>
-      {% endfor %}
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Preview Section -->
+        <section class="preview-section">
+          <div class="preview-card">
+            <div class="message-preview">
+              <div class="profile-picture">
+                <img src="{{ avatar_url }}" alt="Profile picture" />
+              </div>
+              <div class="message-content">
+                <div class="message-header">
+                  <div class="user-info">
+                    <span style="color: {{ color }};" id="username" class="username">{{ name }}</span>
+                    {% if role_icon != None %}
+                    <img src="{{ role_icon }}" class="role-icon" />
+                    {% endif %}
+                  </div>
+                  <span class="timestamp">Today at 6:09 PM</span>
+                </div>
+                <div class="message-text">
+                  <p>Something came in the mail today</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Color Picker Section -->
+        <section class="color-picker-section">
+          <div class="color-picker-card">
+            <h2 class="section-title">Choose Your Color</h2>
+            
+            <div class="color-input-group">
+              <label for="color-picker" class="color-label">Custom Color</label>
+              <div class="color-input-wrapper">
+                <input
+                  class="color-input"
+                  id="color-picker"
+                  data-jscolor="{ 
+                    onInput: handleColorChange,
+                    backgroundColor: '#1e1e1e',
+                    borderColor: '#404040',
+                    borderRadius: 12,
+                    width: 200,
+                    height: 50,
+                    borderWidth: 2,
+                    shadow: false
+                  }"
+                />
+                <button
+                  class="set-button"
+                  id="set-button"
+                  onclick="setColor(`{{ token }}`, `{{ role_id }}`)"
+                >
+                  <span class="button-text">Set color</span>
+                  <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 12l2 2 4-4"/>
+                    <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                    <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Status Message -->
+            <div class="status-container">
+              <div id="setting-color" class="status-message">
+                <div class="status-spinner"></div>
+                <span class="status-text">Setting color...</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dominant Colors Section -->
+        {% if dominant_colors %}
+        <section class="dominant-colors-section">
+          <div class="dominant-colors-card">
+            <h2 class="section-title">Suggested Colors</h2>
+            <p class="section-description">Colors extracted from your profile picture</p>
+            <div class="dominant-colors-grid">
+              {% for color in dominant_colors %}
+              <button
+                class="dominant-color-btn"
+                style="background-color: #{{color}};"
+                onclick="setDominantColor(`{{ color }}`)"
+                title="Click to use this color"
+              >
+                <span class="color-code">#{{color}}</span>
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+        {% endif %}
+      </main>
     </div>
   </body>
 </html>
