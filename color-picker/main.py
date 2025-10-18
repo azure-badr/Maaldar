@@ -43,6 +43,10 @@ async def main_route(token):
     role_id = select_one("SELECT role_id FROM Maaldar WHERE user_id = %s", (maaldar_session[0], ))[0]
     member = guild.get_member(int(maaldar_session[0]))
     role = guild.get_role(int(role_id))
+
+    if not role:
+      return "<p>Role not found</p>"
+    
     role_icon = role.icon.url if role.icon else None
 
     dominant_colors = await get_dominant_colors(member.avatar.url)
@@ -89,6 +93,48 @@ async def set_role_color():
     return "Invalid color", 422
   
   return "Role set", 200
+
+@quart_app.route("/set_role_gradient", methods=["POST"])
+async def set_role_gradient():
+  bytes_data = await request.body
+  data = json.loads(bytes_data.decode("UTF-8"))
+  token = data["token"]
+  maaldar_session = select_one("SELECT * FROM MaaldarSession WHERE token = %s", (token,))
+
+  if not maaldar_session:
+    return "Invalid token", 403
+  
+  """Validate role ID being provided in the body"""
+  user_id = maaldar_session[0]
+  role_id = select_one("SELECT role_id FROM Maaldar WHERE user_id = %s", (user_id, ))[0]
+  
+  if role_id != data["role_id"]:
+    return "Token doesn't match your role ID", 403
+
+  await bot.wait_until_ready()
+  guild = bot.get_guild(configuration["guild_id"])
+  role = guild.get_role(int(data["role_id"]))
+  
+  # Check if role has multiple members (can't set gradient if shared)
+  if len(role.members) > 1:
+    return "Cannot set gradient for shared role", 403
+  
+  color = data["color"]
+  secondary_color = data["secondary_color"]
+  
+  try:
+    # Convert hex colors to integers
+    color_int = int(color[1:], 16) if color.startswith("#") else int(color, 16)
+    secondary_color_int = int(secondary_color[1:], 16) if secondary_color.startswith("#") else int(secondary_color, 16)
+    
+    await role.edit(
+      color=discord.Color(color_int),
+      secondary_color=discord.Color(secondary_color_int)
+    )
+  except:
+    return "Invalid color format", 422
+  
+  return "Gradient set", 200
 
 # Start bot and add it to Quart app loop
 bot_app = bot.start(configuration["token"])

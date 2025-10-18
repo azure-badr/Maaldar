@@ -12,9 +12,89 @@
       src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.6/jscolor.min.js"
     ></script>
     <script defer>
+      let currentMode = 'solid';
+      let currentTheme = 'darker';
+
+      function switchTheme(theme) {
+        currentTheme = theme;
+        
+        document.getElementById("dark-mode-btn").classList.toggle("active", theme === 'dark');
+        document.getElementById("darker-mode-btn").classList.toggle("active", theme === 'darker');
+        
+        document.body.className = `theme-${theme}`;
+      }
+
+      window.addEventListener('load', () => {
+        switchTheme('darker');
+        document.body.classList.add('loaded');
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          document.body.classList.add('loaded');
+        }, 50);
+      });
+
       function handleColorChange(event) {
         const colorPicker = document.getElementById("color-picker");
         document.getElementById("username").style.color = colorPicker.value;
+      }
+
+      function handleGradientColorChange(event) {
+        const primaryColor = document.getElementById("gradient-color-1").value;
+        const secondaryColor = document.getElementById("gradient-color-2").value;
+        
+        if (primaryColor && secondaryColor) {
+          const gradientPreview = document.getElementById("gradient-preview");
+          // Preview shows Discord's actual gradient order: secondary -> primary -> secondary
+          gradientPreview.style.background = `linear-gradient(to right, ${secondaryColor}, ${primaryColor}, ${secondaryColor})`;
+          gradientPreview.style.backgroundSize = '200% 100%';
+          gradientPreview.style.backgroundPosition = '-100% 0%';
+          
+          // Update username with Discord-style gradient
+          const username = document.getElementById("username");
+          username.classList.add("gradient");
+          
+          // Set CSS custom properties for the gradient colors (Discord's actual mapping)
+          document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
+          document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
+        }
+      }
+
+      function switchMode(mode) {
+        currentMode = mode;
+        
+        // Update button states
+        document.getElementById("solid-mode-btn").classList.toggle("active", mode === 'solid');
+        document.getElementById("gradient-mode-btn").classList.toggle("active", mode === 'gradient');
+        
+        // Show/hide appropriate sections
+        document.getElementById("solid-color-group").style.display = mode === 'solid' ? 'block' : 'none';
+        document.getElementById("gradient-color-group").style.display = mode === 'gradient' ? 'block' : 'none';
+        
+        // Hide/show dominant colors
+        const dominantColorsSection = document.querySelector(".dominant-colors-section");
+        if (dominantColorsSection) {
+          dominantColorsSection.style.display = mode === 'solid' ? 'block' : 'none';
+        }
+        
+        // Reset username styling when switching modes
+        const username = document.getElementById("username");
+        if (mode === 'solid') {
+          username.classList.remove("gradient");
+          const colorPicker = document.getElementById("color-picker");
+          username.style.color = colorPicker.value;
+        } else if (mode === 'gradient') {
+          username.classList.remove("gradient");
+          // Re-apply gradient if colors are selected
+          const primaryColor = document.getElementById("gradient-color-1").value;
+          const secondaryColor = document.getElementById("gradient-color-2").value;
+          if (primaryColor && secondaryColor) {
+            username.classList.add("gradient");
+            document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
+            document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
+          }
+        }
       }
 
       function setColor(token, roleId) {
@@ -93,25 +173,120 @@
         });
       }
 
+      function setGradientColor(token, roleId) {
+        console.log("Setting gradient color");
+        const color1 = document.getElementById("gradient-color-1").value;
+        const color2 = document.getElementById("gradient-color-2").value;
+        const setButton = document.getElementById("set-gradient-button");
+        const statusMessage = document.getElementById("setting-color");
+        const statusText = statusMessage.querySelector(".status-text");
+
+        if (!color1 || !color2) {
+          statusText.textContent = "Please select both colors";
+          statusMessage.classList.remove("loading", "success");
+          statusMessage.classList.add("error");
+          statusMessage.style.display = "flex";
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+            statusMessage.classList.remove("error");
+          }, 3000);
+          return;
+        }
+
+        // Show loading state
+        statusMessage.classList.remove("success", "error");
+        statusMessage.classList.add("loading");
+        statusText.textContent = "Setting gradient...";
+        statusMessage.style.display = "flex";
+
+        setButton.disabled = true;
+        setButton.classList.add("loading");
+
+        fetch("/set_role_gradient", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token: token,
+            role_id: roleId,
+            color: color1,
+            secondary_color: color2,
+          }),
+        }).then((response) => {
+          setButton.disabled = false;
+          setButton.classList.remove("loading");
+
+          if (response.status === 200) {
+            statusText.textContent = "Gradient applied successfully!";
+            statusMessage.classList.remove("loading");
+            statusMessage.classList.add("success");
+            setTimeout(() => {
+              statusMessage.style.display = "none";
+              statusMessage.classList.remove("success");
+            }, 3000);
+            return;
+          }
+
+          if (response.status === 400) {
+            statusText.textContent = "Invalid color format";
+            statusMessage.classList.remove("loading");
+            statusMessage.classList.add("error");
+            setTimeout(() => {
+              statusMessage.style.display = "none";
+              statusMessage.classList.remove("error");
+            }, 3000);
+            return;
+          }
+
+          statusText.textContent = "Invalid token or permission denied";
+          statusMessage.classList.remove("loading");
+          statusMessage.classList.add("error");
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+            statusMessage.classList.remove("error");
+          }, 3000);
+        }).catch((error) => {
+          setButton.disabled = false;
+          setButton.classList.remove("loading");
+          statusText.textContent = "Network error occurred";
+          statusMessage.classList.remove("loading");
+          statusMessage.classList.add("error");
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+            statusMessage.classList.remove("error");
+          }, 3000);
+        });
+      }
+
       function setDominantColor(color) {
-        const colorPicker = document.getElementById("color-picker");
-        colorPicker.jscolor.fromString(`#${color}`);
-        document.getElementById("username").style.color = colorPicker.value;
+        if (currentMode === 'solid') {
+          const colorPicker = document.getElementById("color-picker");
+          colorPicker.jscolor.fromString(`#${color}`);
+          document.getElementById("username").style.color = colorPicker.value;
+        }
       }
     </script>
   </head>
   <body>
     <div class="app">
-      <!-- Header -->
-      <header class="header">
-        <div class="header-content">
-          <h1 class="title">🎨 Maaldar Color Picker</h1>
-          <p class="subtitle">Customize your role color</p>
-        </div>
-      </header>
-
       <!-- Main Content -->
       <main class="main-content">
+        <!-- Theme Toggle -->
+        <section class="theme-section">
+          <div class="theme-toggle-container">
+            <span class="theme-label">Switch background color</span>
+            <div class="theme-toggle">
+              <button class="theme-btn" id="dark-mode-btn" onclick="switchTheme('dark')">
+                <span>Dark</span>
+              </button>
+              <button class="theme-btn active" id="darker-mode-btn" onclick="switchTheme('darker')">
+                <span>Darker</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
         <!-- Preview Section -->
         <section class="preview-section">
           <div class="preview-card">
@@ -127,7 +302,7 @@
                     <img src="{{ role_icon }}" class="role-icon" />
                     {% endif %}
                   </div>
-                  <span class="timestamp">Today at 6:09 PM</span>
+                  <span class="timestamp">6:09 PM</span>
                 </div>
                 <div class="message-text">
                   <p>Something came in the mail today</p>
@@ -142,12 +317,27 @@
           <div class="color-picker-card">
             <h2 class="section-title">Choose Your Color</h2>
             
-            <div class="color-input-group">
+            <!-- Mode Toggle -->
+            <div class="mode-toggle-group">
+              <label class="mode-label">Color Mode</label>
+              <div class="mode-toggle">
+                <button class="mode-btn active" id="solid-mode-btn" onclick="switchMode('solid')">
+                  <span>Solid</span>
+                </button>
+                <button class="mode-btn" id="gradient-mode-btn" onclick="switchMode('gradient')">
+                  <span>Gradient</span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Solid Color Mode -->
+            <div class="color-input-group" id="solid-color-group">
               <label for="color-picker" class="color-label">Custom Color</label>
               <div class="color-input-wrapper">
                 <input
                   class="color-input"
                   id="color-picker"
+                  readonly
                   data-jscolor="{ 
                     onInput: handleColorChange,
                     backgroundColor: '#1e1e1e',
@@ -174,6 +364,63 @@
               </div>
             </div>
 
+            <!-- Gradient Color Mode -->
+            <div class="gradient-input-group" id="gradient-color-group" style="display: none;">
+              <div class="gradient-preview">
+                <div class="gradient-preview-box" id="gradient-preview"></div>
+              </div>
+              <div class="gradient-inputs">
+                <div class="gradient-color-input">
+                  <label for="gradient-color-1" class="color-label">Primary Color</label>
+                  <input
+                    class="color-input"
+                    id="gradient-color-1"
+                    readonly
+                    data-jscolor="{ 
+                      onInput: handleGradientColorChange,
+                      backgroundColor: '#1e1e1e',
+                      borderColor: '#404040',
+                      borderRadius: 12,
+                      width: 200,
+                      height: 50,
+                      borderWidth: 2,
+                      shadow: false
+                    }"
+                  />
+                </div>
+                <div class="gradient-color-input">
+                  <label for="gradient-color-2" class="color-label">Secondary Color</label>
+                  <input
+                    class="color-input"
+                    id="gradient-color-2"
+                    readonly
+                    data-jscolor="{ 
+                      onInput: handleGradientColorChange,
+                      backgroundColor: '#1e1e1e',
+                      borderColor: '#404040',
+                      borderRadius: 12,
+                      width: 200,
+                      height: 50,
+                      borderWidth: 2,
+                      shadow: false
+                    }"
+                  />
+                </div>
+              </div>
+              <button
+                class="set-button"
+                id="set-gradient-button"
+                onclick="setGradientColor(`{{ token }}`, `{{ role_id }}`)"
+              >
+                <span class="button-text">Set gradient</span>
+                <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                  <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                </svg>
+              </button>
+            </div>
+
             <!-- Status Message -->
             <div class="status-container">
               <div id="setting-color" class="status-message">
@@ -188,7 +435,6 @@
         {% if dominant_colors %}
         <section class="dominant-colors-section">
           <div class="dominant-colors-card">
-            <h2 class="section-title">Suggested Colors</h2>
             <p class="section-description">Colors extracted from your profile picture</p>
             <div class="dominant-colors-grid">
               {% for color in dominant_colors %}
