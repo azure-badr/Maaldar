@@ -13,7 +13,6 @@ import sys
 import os.path
 
 from config import configuration, select_one, get_dominant_colors
-# Setting up the static files and templates
 sys.path.append(
   os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir)
@@ -21,13 +20,14 @@ sys.path.append(
 )
 
 quart_app = Quart(__name__)
-# Get event loop for Quart app
 quart_event_loop = asyncio.get_event_loop()
 
 intents = discord.Intents(members=True, guilds=True)
 bot = commands.Bot(command_prefix='', intents=intents)
 
-guild_cache = None
+async def get_guild():
+  await bot.wait_until_ready()
+  return bot.get_guild(configuration["guild_id"])
 
 @quart_app.route("/")
 async def main():
@@ -47,16 +47,13 @@ async def main_route(token):
   
   user_id, role_id = user_data
   
-  global guild_cache
-  if not guild_cache:
-    await bot.wait_until_ready()
-    guild_cache = bot.get_guild(configuration["guild_id"])
+  guild = await get_guild()
   
-  if not guild_cache:
+  if not guild:
     return "<p>Guild not found</p>"
   
-  member = guild_cache.get_member(int(user_id))
-  role = guild_cache.get_role(int(role_id))
+  member = guild.get_member(int(user_id))
+  role = guild.get_role(int(role_id))
 
   if not member or not role:
     return "<p>Member or role not found</p>"
@@ -99,28 +96,21 @@ async def set_role_color():
   if role_id != data["role_id"]:
     return "Token doesn't match your role ID", 403
 
-  global guild_cache
-  if not guild_cache:
-    await bot.wait_until_ready()
-    guild_cache = bot.get_guild(configuration["guild_id"])
+  guild = await get_guild()
   
-  role = guild_cache.get_role(int(data["role_id"]))
+  role = guild.get_role(int(data["role_id"]))
   if not role:
     return "Role not found", 404
   
-  # Check if role has multiple members (can't set gradient if shared)
   if len(role.members) > 1 and "secondary_color" in data:
     return "Cannot set gradient for shared role", 403
   
   try:
-    # Convert primary color
     color = data["color"]
     color_int = int(color[1:], 16) if color.startswith("#") else int(color, 16)
     
-    # Prepare role edit parameters
     edit_params = {"color": discord.Color(color_int)}
     
-    # Add secondary color if provided (for gradients)
     if "secondary_color" in data and data["secondary_color"]:
       secondary_color = data["secondary_color"]
       secondary_color_int = int(secondary_color[1:], 16) if secondary_color.startswith("#") else int(secondary_color, 16)
@@ -142,12 +132,9 @@ async def get_dominant_colors_api():
     
     user_id = user_data[0]
     
-    global guild_cache
-    if not guild_cache:
-      await bot.wait_until_ready()
-      guild_cache = bot.get_guild(configuration["guild_id"])
+    guild = await get_guild()
     
-    member = guild_cache.get_member(int(user_id))
+    member = guild.get_member(int(user_id))
     if not member:
       return "Member not found", 404
     
