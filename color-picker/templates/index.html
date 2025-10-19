@@ -343,11 +343,9 @@
 
 
       function setDominantColor(color) {
-        if (currentMode === 'solid') {
-          const colorPicker = document.getElementById("color-picker");
-          colorPicker.jscolor.fromString(`#${color}`);
-          document.getElementById("username").style.color = colorPicker.value;
-        }
+        const colorPicker = document.getElementById("color-picker");
+        colorPicker.jscolor.fromString(`#${color}`);
+        document.getElementById("username").style.color = colorPicker.value;
       }
     </script>
   </head>
