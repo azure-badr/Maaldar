@@ -6,120 +6,520 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Maaldar Color Picker</title>
     <link rel="stylesheet" href="../static/index.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script
       defer
       src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.4.6/jscolor.min.js"
     ></script>
     <script defer>
+      let currentMode = 'solid';
+      let currentTheme = 'darker';
+
+      function switchTheme(theme) {
+        currentTheme = theme;
+        
+        document.getElementById("dark-mode-btn").classList.toggle("active", theme === 'dark');
+        document.getElementById("darker-mode-btn").classList.toggle("active", theme === 'darker');
+        
+        document.body.className = `theme-${theme}`;
+      }
+
+      window.addEventListener('load', () => {
+        switchTheme('darker');
+        initializeColorMode();
+        loadDominantColors();
+      });
+
+      function initializeColorMode() {
+        const hasSecondaryColor = {{ 'true' if secondary_color else 'false' }};
+
+        switchMode('solid');
+        
+        if (hasSecondaryColor) {
+          const primaryColorValue = {{ color.value if color else 0 }};
+          const secondaryColorValue = {{ secondary_color.value if secondary_color else 0 }};
+          
+          const primaryColor = primaryColorValue > 0 ? '#' + primaryColorValue.toString(16).padStart(6, '0') : '#5865f2';
+          const secondaryColor = secondaryColorValue > 0 ? '#' + secondaryColorValue.toString(16).padStart(6, '0') : '#5865f2';
+          
+          // Set the solid color picker to the primary color
+          document.getElementById('color-picker').value = primaryColor;
+          
+          // Apply gradient to username
+          const username = document.getElementById('username');
+          username.classList.add('gradient');
+          
+          // Set the CSS custom properties for the gradient
+          document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
+          document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
+        } else {
+          const colorValue = {{ color.value if color else 0 }};
+          const solidColor = colorValue > 0 ? '#' + colorValue.toString(16).padStart(6, '0') : '#5865f2';
+          document.getElementById('color-picker').value = solidColor;
+          document.getElementById('username').style.color = solidColor;
+        }
+      }
+
+      async function loadDominantColors() {
+        // Show loading state
+        showDominantColorsLoader();
+        
+        try {
+          const response = await fetch(`/get_dominant_colors?token={{ token }}`);
+          if (response.ok) {
+            const data = await response.json();
+            displayDominantColors(data.dominant_colors);
+          } else {
+            console.error('Failed to load dominant colors:', response.statusText);
+            hideDominantColorsLoader();
+          }
+        } catch (error) {
+          console.error('Error loading dominant colors:', error);
+          hideDominantColorsLoader();
+        }
+      }
+
+      function showDominantColorsLoader() {
+        const loaderSection = document.createElement('section');
+        loaderSection.className = 'dominant-colors-section';
+        loaderSection.id = 'dominant-colors-loader';
+        loaderSection.innerHTML = `
+          <div class="dominant-colors-card">
+            <div class="color-extraction-loader">
+              <div class="loader-spinner"></div>
+              <p class="loader-text">Extracting colors from your profile picture</p>
+            </div>
+          </div>
+        `;
+        
+        // Insert after the color picker section
+        const colorPickerSection = document.querySelector('.color-picker-section');
+        colorPickerSection.insertAdjacentElement('afterend', loaderSection);
+      }
+
+      function hideDominantColorsLoader() {
+        const loader = document.getElementById('dominant-colors-loader');
+        if (loader) {
+          loader.remove();
+        }
+      }
+
+      function displayDominantColors(colors) {
+        if (!colors || colors.length === 0) {
+          hideDominantColorsLoader();
+          return;
+        }
+        
+        // Remove loader first
+        hideDominantColorsLoader();
+        
+        const dominantColorsSection = document.createElement('section');
+        dominantColorsSection.className = 'dominant-colors-section';
+        dominantColorsSection.innerHTML = `
+          <div class="dominant-colors-card">
+            <p class="section-description">Colors extracted from your profile picture</p>
+            <div class="dominant-colors-grid">
+              ${colors.map(color => `
+                <button
+                  class="dominant-color-btn"
+                  style="background-color: #${color};"
+                  onclick="setDominantColor('${color}')"
+                  title="Click to use this color"
+                >
+                  <span class="color-code">#${color}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        
+        // Insert after the color picker section
+        const colorPickerSection = document.querySelector('.color-picker-section');
+        colorPickerSection.insertAdjacentElement('afterend', dominantColorsSection);
+      }
+
       function handleColorChange(event) {
         const colorPicker = document.getElementById("color-picker");
         document.getElementById("username").style.color = colorPicker.value;
       }
 
-      function setColor(token, roleId) {
-        console.log("Setting color");
-        const colorPicker = document.getElementById("color-picker");
-        const setButton = document.getElementById("set-button");
-        const settingColor = document.getElementById("setting-color");
+      function handleGradientColorChange(event) {
+        const primaryColor = document.getElementById("gradient-color-1").value;
+        const secondaryColor = document.getElementById("gradient-color-2").value;
+        
+        if (primaryColor && secondaryColor) {
+          const gradientPreview = document.getElementById("gradient-preview");
+          // Preview shows Discord's actual gradient order: secondary -> primary -> secondary
+          gradientPreview.style.background = `linear-gradient(to right, ${secondaryColor}, ${primaryColor}, ${secondaryColor})`;
+          gradientPreview.style.backgroundSize = '200% 100%';
+          gradientPreview.style.backgroundPosition = '-100% 0%';
+          
+          // Update username with Discord-style gradient
+          const username = document.getElementById("username");
+          username.classList.add("gradient");
+          
+          // Set CSS custom properties for the gradient colors (Discord's actual mapping)
+          document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
+          document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
+        }
+      }
 
-        settingColor.classList.toggle("set", false);
-        settingColor.textContent = "Setting color...";
-        settingColor.style.display = "block";
+      function switchMode(mode) {
+        currentMode = mode;
+        
+        // Update button states
+        document.getElementById("solid-mode-btn").classList.toggle("active", mode === 'solid');
+        document.getElementById("gradient-mode-btn").classList.toggle("active", mode === 'gradient');
+        
+        // Show/hide appropriate sections
+        document.getElementById("solid-color-group").style.display = mode === 'solid' ? 'block' : 'none';
+        document.getElementById("gradient-color-group").style.display = mode === 'gradient' ? 'block' : 'none';
+        
+        // Hide/show dominant colors
+        const dominantColorsSection = document.querySelector(".dominant-colors-section");
+        if (dominantColorsSection) {
+          dominantColorsSection.style.display = mode === 'solid' ? 'block' : 'none';
+        }
+        
+        // Reset username styling when switching modes
+        const username = document.getElementById("username");
+        if (mode === 'solid') {
+          username.classList.remove("gradient");
+          const colorPicker = document.getElementById("color-picker");
+          username.style.color = colorPicker.value;
+        } else if (mode === 'gradient') {
+          username.classList.remove("gradient");
+          // Re-apply gradient if colors are selected
+          const primaryColor = document.getElementById("gradient-color-1").value;
+          const secondaryColor = document.getElementById("gradient-color-2").value;
+          if (primaryColor && secondaryColor) {
+            username.classList.add("gradient");
+            document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
+            document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
+          }
+        }
+      }
 
-        setButton.setAttribute("disabled", "true");
+      function setRoleColor(token, roleId, isGradient = false) {
+        console.log(`Setting ${isGradient ? 'gradient' : 'solid'} color`);
+        
+        // Get colors based on mode
+        let primaryColor, secondaryColor;
+        if (isGradient) {
+          primaryColor = document.getElementById("gradient-color-1").value;
+          secondaryColor = document.getElementById("gradient-color-2").value;
+          
+          // Validate gradient colors
+          if (!primaryColor || !secondaryColor) {
+            showStatusMessage("Please select both colors", "error");
+            return;
+          }
+        } else {
+          primaryColor = document.getElementById("color-picker").value;
+        }
+
+        // Get UI elements
+        const setButton = document.getElementById(isGradient ? "set-gradient-button" : "set-button");
+        const statusMessage = document.getElementById("setting-color");
+        const statusText = statusMessage.querySelector(".status-text");
+
+        // Show loading state
+        statusMessage.classList.remove("success", "error");
+        statusMessage.classList.add("loading");
+        statusText.textContent = `Setting ${isGradient ? 'gradient' : 'color'}...`;
+        statusMessage.style.display = "flex";
+        
+        // Show spinner, hide other icons
+        statusMessage.querySelector('.status-spinner').style.display = 'block';
+        statusMessage.querySelector('.status-success-icon').style.display = 'none';
+        statusMessage.querySelector('.status-error-icon').style.display = 'none';
+
+        setButton.disabled = true;
+        setButton.classList.add("loading");
+
+        // Prepare request body
+        const requestBody = {
+          token: token,
+          role_id: roleId,
+          color: primaryColor,
+        };
+        
+        // Add secondary color for gradients
+        if (isGradient) {
+          requestBody.secondary_color = secondaryColor;
+        }
 
         fetch("/set_role_color", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            token: token,
-            role_id: roleId,
-            color: colorPicker.value,
-          }),
+          body: JSON.stringify(requestBody),
         }).then((response) => {
-          setButton.toggleAttribute("disabled");
-
-          if (response.status === 200) {
-            settingColor.textContent = "Color set!";
-            settingColor.classList.toggle("set", true);
+          setButton.disabled = false;
+          setButton.classList.remove("loading");
+          
+          if (response.ok) {
+            statusText.textContent = `${isGradient ? 'Gradient' : 'Color'} applied successfully!`;
+            statusMessage.classList.remove("loading");
+            statusMessage.classList.add("success");
+            
+            // Show success icon, hide spinner
+            statusMessage.querySelector('.status-spinner').style.display = 'none';
+            statusMessage.querySelector('.status-success-icon').style.display = 'block';
+            statusMessage.querySelector('.status-error-icon').style.display = 'none';
+            
+            setTimeout(() => {
+              statusMessage.style.display = "none";
+              statusMessage.classList.remove("success");
+            }, 3000);
             return;
           }
 
           if (response.status === 400) {
-            settingColor.innerText = "Invalid color";
-            return;
+            statusText.textContent = "Invalid color format";
+          } else if (response.status === 403) {
+            statusText.textContent = "Invalid token or permission denied";
+          } else if (response.status === 422) {
+            statusText.textContent = "Invalid color format";
+          } else {
+            statusText.textContent = "Failed to set color";
           }
-
-          settingColor.innerText = "Invalid token";
+          
+          statusMessage.classList.remove("loading");
+          statusMessage.classList.add("error");
+          
+          // Show error icon, hide spinner
+          statusMessage.querySelector('.status-spinner').style.display = 'none';
+          statusMessage.querySelector('.status-success-icon').style.display = 'none';
+          statusMessage.querySelector('.status-error-icon').style.display = 'block';
+          
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+            statusMessage.classList.remove("error");
+          }, 5000);
+        }).catch((error) => {
+          setButton.disabled = false;
+          setButton.classList.remove("loading");
+          statusText.textContent = "Network error occurred";
+          statusMessage.classList.remove("loading");
+          statusMessage.classList.add("error");
+          
+          // Show error icon, hide spinner
+          statusMessage.querySelector('.status-spinner').style.display = 'none';
+          statusMessage.querySelector('.status-success-icon').style.display = 'none';
+          statusMessage.querySelector('.status-error-icon').style.display = 'block';
+          
+          setTimeout(() => {
+            statusMessage.style.display = "none";
+            statusMessage.classList.remove("error");
+          }, 5000);
         });
       }
 
-      function setDominantColor(color) {
-        const colorPicker = document.getElementById("color-picker");
-        colorPicker.jscolor.fromString(`#${color}`);
+      // Convenience functions for backward compatibility
+      function setColor(token, roleId) {
+        setRoleColor(token, roleId, false);
+      }
 
-        document.getElementById("username").style.color = colorPicker.value;
+      function setGradientColor(token, roleId) {
+        setRoleColor(token, roleId, true);
+      }
+
+      // Helper function for status messages
+      function showStatusMessage(message, type) {
+        const statusMessage = document.getElementById("setting-color");
+        const statusText = statusMessage.querySelector(".status-text");
+        
+        statusMessage.classList.remove("loading", "success", "error");
+        statusMessage.classList.add(type);
+        statusText.textContent = message;
+        statusMessage.style.display = "flex";
+        
+        setTimeout(() => {
+          statusMessage.style.display = "none";
+        }, type === "error" ? 5000 : 3000);
+      }
+
+
+      function setDominantColor(color) {
+        if (currentMode === 'solid') {
+          const colorPicker = document.getElementById("color-picker");
+          colorPicker.jscolor.fromString(`#${color}`);
+          document.getElementById("username").style.color = colorPicker.value;
+        }
       }
     </script>
   </head>
   <body>
-    <div class="container">
-      <div class="profile-picture">
-        <img src="{{ avatar_url }}" alt="Profile picture" />
-      </div>
-      <div class="message-container">
-        <div class="message-header">
-          <div>
-            <p style="color: {{ color }};" id="username">{{ name }}</p>
-            {% if role_icon != None %}
-            <img src="{{ role_icon }}" />
-            {% endif %}
+    <div class="app">
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Theme Toggle -->
+        <section class="theme-section">
+          <div class="theme-toggle-container">
+            <span class="theme-label">Switch background color</span>
+            <div class="theme-toggle">
+              <button class="theme-btn" id="dark-mode-btn" onclick="switchTheme('dark')">
+                <span>Dark</span>
+              </button>
+              <button class="theme-btn active" id="darker-mode-btn" onclick="switchTheme('darker')">
+                <span>Darker</span>
+              </button>
+            </div>
           </div>
-          <span>Today at 6:09 PM</span>
-        </div>
-        <div class="message-content">
-          <p>Something came in the mail today</p>
-        </div>
-      </div>
-    </div>
-    <div>
-      <p id="setting-color" class="setting-color">Setting color...</p>
-    </div>
-    <div class="color-container">
-      <input
-        class="color-input"
-        id="color-picker"
-        data-jscolor="{ 
-        onInput: handleColorChange,
-        backgroundColor: '#333',
-        borderColor: '#333',
-        borderRadius: 15,
-      }"
-      />
-      <button
-        class="set-button"
-        id="set-button"
-        onclick="setColor(
-        `{{ token }}`,
-        `{{ role_id }}`
-      )"
-      >
-        Set color
-      </button>
-    </div>
-    <div class="dominant-colors-container">
-      {% for color in dominant_colors %}
+        </section>
 
-      <div
-        style="background-color: #{{color}};"
-        class="dominant-color"
-        onclick="setDominantColor(
-        `{{ color }}`
-      )"
-      ></div>
-      {% endfor %}
+        <!-- Preview Section -->
+        <section class="preview-section">
+          <div class="preview-card">
+            <div class="message-preview">
+              <div class="profile-picture">
+                <img src="{{ avatar_url }}" alt="Profile picture" />
+              </div>
+              <div class="message-content">
+                <div class="message-header">
+                  <div class="user-info">
+                    <span style="color: {{ color }};" id="username" class="username">{{ name }}</span>
+                    {% if role_icon != None %}
+                    <img src="{{ role_icon }}" class="role-icon" />
+                    {% endif %}
+                  </div>
+                  <span class="timestamp">6:09 PM</span>
+                </div>
+                <div class="message-text">
+                  <p>Something came in the mail today</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Color Picker Section -->
+        <section class="color-picker-section">
+          <div class="color-picker-card">
+            <h2 class="section-title">Choose Your Color</h2>
+            
+            <!-- Mode Toggle -->
+            <div class="mode-toggle-group">
+              <label class="mode-label">Color Mode</label>
+              <div class="mode-toggle">
+                <button class="mode-btn active" id="solid-mode-btn" onclick="switchMode('solid')">
+                  <span>Solid</span>
+                </button>
+                <button class="mode-btn" id="gradient-mode-btn" onclick="switchMode('gradient')">
+                  <span>Gradient</span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Solid Color Mode -->
+            <div class="color-input-group" id="solid-color-group">
+              <label for="color-picker" class="color-label">Custom Color</label>
+              <div class="color-input-wrapper">
+                <input
+                  class="color-input"
+                  id="color-picker"
+                  readonly
+                  data-jscolor="{ 
+                    onInput: handleColorChange,
+                    backgroundColor: '#1e1e1e',
+                    borderColor: '#404040',
+                    borderRadius: 12,
+                    width: 200,
+                    height: 50,
+                    borderWidth: 2,
+                    shadow: false
+                  }"
+                />
+                <button
+                  class="set-button"
+                  id="set-button"
+                  onclick="setColor(`{{ token }}`, `{{ role_id }}`)"
+                >
+                  <span class="button-text">Set color</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Gradient Color Mode -->
+            <div class="gradient-input-group" id="gradient-color-group" style="display: none;">
+              <div class="gradient-preview">
+                <div class="gradient-preview-box" id="gradient-preview"></div>
+              </div>
+              <div class="gradient-inputs">
+                <div class="gradient-color-input">
+                  <label for="gradient-color-1" class="color-label">Primary Color</label>
+                  <input
+                    class="color-input"
+                    id="gradient-color-1"
+                    readonly
+                    data-jscolor="{ 
+                      onInput: handleGradientColorChange,
+                      backgroundColor: '#1e1e1e',
+                      borderColor: '#404040',
+                      borderRadius: 12,
+                      width: 200,
+                      height: 50,
+                      borderWidth: 2,
+                      shadow: false
+                    }"
+                  />
+                </div>
+                <div class="gradient-color-input">
+                  <label for="gradient-color-2" class="color-label">Secondary Color</label>
+                  <input
+                    class="color-input"
+                    id="gradient-color-2"
+                    readonly
+                    data-jscolor="{ 
+                      onInput: handleGradientColorChange,
+                      backgroundColor: '#1e1e1e',
+                      borderColor: '#404040',
+                      borderRadius: 12,
+                      width: 200,
+                      height: 50,
+                      borderWidth: 2,
+                      shadow: false
+                    }"
+                  />
+                </div>
+              </div>
+              <button
+                class="set-button"
+                id="set-gradient-button"
+                onclick="setGradientColor(`{{ token }}`, `{{ role_id }}`)"
+              >
+                <span class="button-text">Set gradient</span>
+                <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                  <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Status Message -->
+            <div class="status-container">
+              <div id="setting-color" class="status-message">
+                <div class="status-spinner"></div>
+                <svg class="status-success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                  <path d="M9 12l2 2 4-4"/>
+                  <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                  <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                </svg>
+                <svg class="status-error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                  <path d="M18 6L6 18"/>
+                  <path d="M6 6l12 12"/>
+                </svg>
+                <span class="status-text">Setting color...</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dominant Colors Section will be loaded dynamically -->
+      </main>
     </div>
   </body>
 </html>
