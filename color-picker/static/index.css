@@ -660,7 +660,7 @@ body.theme-darker {
   }
   
   .dominant-color-btn {
-    width: 28px;
+    width: 100%;
     height: 28px;
     padding: 0;
   }
