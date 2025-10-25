@@ -13,13 +13,8 @@ body {
   transition: all 0.3s ease;
 }
 
-/* Discord Theme Colors - Actual Discord Colors */
-body.theme-dark {
-  background: #36393f;
-  color: #dcddde;
-}
 
-body.theme-darker {
+body {
   background: #2f3136;
   color: #dcddde;
 }
@@ -36,14 +31,6 @@ body.theme-darker {
   padding: 2rem 0;
   text-align: center;
   transition: all 0.3s ease;
-}
-
-.theme-dark .header {
-  background: #2f3136;
-  border-bottom: 1px solid #202225;
-}
-
-.theme-darker .header {
   background: #23272a;
   border-bottom: 1px solid #1e2124;
 }
@@ -68,73 +55,6 @@ body.theme-darker {
   margin-bottom: 1.5rem;
 }
 
-/* Theme Section - Simple Toggle */
-.theme-section {
-  margin-bottom: 1rem;
-}
-
-.theme-toggle-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background: #40444b;
-  border: 1px solid #202225;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.theme-darker .theme-toggle-container {
-  background: #36393f;
-  border: 1px solid #202225;
-}
-
-.theme-label {
-  font-size: 0.9rem;
-  color: #dcddde;
-  font-weight: 500;
-}
-
-.theme-toggle {
-  display: flex;
-  background: #2f3136;
-  border-radius: 8px;
-  padding: 4px;
-  width: 120px;
-  position: relative;
-}
-
-.theme-dark .theme-toggle {
-  background: #40444b;
-}
-
-.theme-darker .theme-toggle {
-  background: #36393f;
-}
-
-.theme-btn {
-  background: none;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  color: #72767d;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.theme-btn.active {
-  background: #5865f2;
-  color: white;
-}
-
-.theme-btn:hover:not(.active) {
-  color: #dcddde;
-}
-
 /* Main Content */
 .main-content {
   flex: 1;
@@ -156,32 +76,6 @@ body.theme-darker {
   transition: all 0.3s ease;
 }
 
-.theme-dark .preview-card,
-.theme-dark .color-picker-card,
-.theme-dark .dominant-colors-card {
-  background: #40444b;
-  border: 1px solid #202225;
-}
-
-.theme-darker .preview-card,
-.theme-darker .color-picker-card,
-.theme-darker .dominant-colors-card {
-  background: #36393f;
-  border: 1px solid #202225;
-}
-
-.theme-dark .preview-card:hover,
-.theme-dark .color-picker-card:hover,
-.theme-dark .dominant-colors-card:hover {
-  background: #36393f;
-}
-
-.theme-darker .preview-card:hover,
-.theme-darker .color-picker-card:hover,
-.theme-darker .dominant-colors-card:hover {
-  background: #2f3136;
-}
-
 /* Section Titles */
 .section-title {
   font-size: 1.5rem;
@@ -200,16 +94,7 @@ body.theme-darker {
 .preview-card {
   border-radius: 12px;
   padding: 0.5rem 1rem;
-}
-
-.theme-dark .preview-card {
-  background: #36393f;
-  border: 1px solid #202225;
-}
-
-.theme-darker .preview-card {
-  background: #2f3136;
-  border: 1px solid #202225;
+  background-color: #1A1A1E;
 }
 
 
@@ -719,8 +604,6 @@ body.theme-darker {
     font-size: 0.8rem;
   }
 }
-
-/* Discord already uses dark theme */
 
 /* High contrast mode */
 @media (prefers-contrast: high) {
