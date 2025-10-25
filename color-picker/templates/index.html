@@ -13,19 +13,8 @@
     ></script>
     <script defer>
       let currentMode = 'solid';
-      let currentTheme = 'darker';
-
-      function switchTheme(theme) {
-        currentTheme = theme;
-        
-        document.getElementById("dark-mode-btn").classList.toggle("active", theme === 'dark');
-        document.getElementById("darker-mode-btn").classList.toggle("active", theme === 'darker');
-        
-        document.body.className = `theme-${theme}`;
-      }
 
       window.addEventListener('load', () => {
-        switchTheme('darker');
         initializeColorMode();
         loadDominantColors();
       });
@@ -353,21 +342,6 @@
     <div class="app">
       <!-- Main Content -->
       <main class="main-content">
-        <!-- Theme Toggle -->
-        <section class="theme-section">
-          <div class="theme-toggle-container">
-            <span class="theme-label">Switch background color</span>
-            <div class="theme-toggle">
-              <button class="theme-btn" id="dark-mode-btn" onclick="switchTheme('dark')">
-                <span>Dark</span>
-              </button>
-              <button class="theme-btn active" id="darker-mode-btn" onclick="switchTheme('darker')">
-                <span>Darker</span>
-              </button>
-            </div>
-          </div>
-        </section>
-
         <!-- Preview Section -->
         <section class="preview-section">
           <div class="preview-card">
