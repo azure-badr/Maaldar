@@ -145,14 +145,14 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     await Palette.palette(interaction=interaction)
 
   "Color Picker Command"
-  # @app_commands.command(
-  #   name="color-picker",
-  #   description="Pick a color for your role from a colour picker. (Must have DMs enabled)"
-  # )
-  # @app_commands.checks.has_any_role(*configuration["role_ids"])
-  # @has_custom_role()
-  # async def _color_picker(self, interaction: discord.Interaction) -> None:
-  #   await Color.color_picker(interaction=interaction)
+  @app_commands.command(
+    name="color-picker",
+    description="Pick a color for your role from a colour picker. (Must have DMs enabled)"
+  )
+  @app_commands.checks.has_any_role(*configuration["role_ids"])
+  @has_custom_role()
+  async def _color_picker(self, interaction: discord.Interaction) -> None:
+    await Color.color_picker(interaction=interaction)
   
   @app_commands.command(
     name="position",
@@ -170,7 +170,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_icon.error
   @_assign.error
   @_unassign.error
-  # @_color_picker.error
+  @_color_picker.error
   @_palette.error
   @_position.error
   @_list.error
