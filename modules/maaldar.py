@@ -147,7 +147,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   "Color Picker Command"
   @app_commands.command(
     name="color-picker",
-    description="Pick a color for your role from a colour picker. (Must have DMs enabled)"
+    description="Pick a color for your role from a colour picker"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
