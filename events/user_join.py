@@ -41,10 +41,14 @@ class UserJoinEvent(commands.Cog):
 
     role_color_str: str = maaldar_role[2]
     role_colors = self._get_colors(role_color_str)
-    role = await role.edit(
-      **role_colors,
-      position=(guild.get_role(configuration["custom_role_id"]).position - 1)
-    )
+    if role_colors:
+      role = await role.edit(**role_colors)
+
+    anchor = guild.get_role(configuration["custom_role_id"])
+    try:
+      await role.move(above=anchor, reason="maaldar rejoin")
+    except Exception as error:
+      print(f"[!] Failed to position rejoin role {role.id}: {error}")
 
     await member.add_roles(role)
     insert_query(
