@@ -65,9 +65,21 @@ class BoostEvent(commands.Cog):
         color=discord.Color(int(maaldar_role[2]))
       )
 
-      await role.edit(
-        position=(guild.get_role(configuration["custom_role_id"]).position - 1)
-      )
+      anchor = guild.get_role(configuration["custom_role_id"])
+      try:
+        await role.move(above=anchor, reason="maaldar boost")
+      except Exception as error:
+        print(f"[!] Failed to position boost role {role.id}: {error}")
+        try:
+          owner = after.guild.get_member(configuration["owner_id"])
+          if owner is not None:
+            await owner.send(
+              f"[!] Created Maaldar role `{role.name}` ({role.id}) for "
+              f"{member.name} but could not position it: {error}\n"
+              "It is stranded at the bottom of the role list and needs a manual move."
+            )
+        except Exception as notify_error:
+          print(f"[!] Could not notify owner: {notify_error}")
       await member.add_roles(role)
       print(f"[+] {role.name} created and given to {member.name}")
 

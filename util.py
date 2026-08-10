@@ -53,6 +53,7 @@ try:
     	"owner_id": int(os.environ["OWNER_ID"]),
         "filtered_role_names": [role_name for role_name in os.environ["FILTERED_ROLE_NAMES"].split(",")],
 		"custom_role_id": int(os.environ["CUSTOM_ROLE_ID"]),
+		"main_role_id": int(os.environ["MAIN_ROLE_ID"]) if os.environ.get("MAIN_ROLE_ID") else None,
 		"guild_id": int(os.environ["GUILD_ID"]),
 		"role_ids": [int(role_id) for role_id in os.environ["ROLE_IDS"].split(",")],
 		"emoji_server_id": int(os.environ["EMOJI_SERVER_ID"]),

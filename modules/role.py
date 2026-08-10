@@ -28,9 +28,12 @@ class Role:
 			print(f"Role {role.name} {role.id} created and assigned to {member.name}")
 			await interaction.followup.send(f"**{name}** created and assigned to you ✨")
 			
-			target_position = guild.get_role(configuration["custom_role_id"]).position - 1
-			await role.edit(position=target_position)
-			print(f"Role {role.name} {role.id} moved to position {target_position}")
+			anchor = guild.get_role(configuration["custom_role_id"])
+			try:
+				await role.move(above=anchor, reason="maaldar role creation")
+				print(f"Role {role.name} {role.id} moved below {anchor.name}")
+			except Exception as error:
+				print(f"[!] Failed to position new role {role.id}: {error}")
 			
 			return
 
@@ -99,6 +102,12 @@ class DropdownPositionSelect(discord.ui.Select):
 			await interaction.response.send_message(f"You can't move your role around **{role.name}** since it's above a risky permission role 😬.")
 			return
 
+		main_role_id = configuration.get("main_role_id")
+		main_role = interaction.guild.get_role(int(main_role_id)) if main_role_id else None
+		if main_role is not None and role.position <= main_role.position:
+			await interaction.response.send_message(f"You can't move your role around **{role.name}** since it's below the custom roles section 😬.")
+			return
+
 		print(f"Member [{interaction.user.id}] attempting to position ther role around {role.name} [{role.id}]")
 
 		view = DropdownAboveBelow(role, self.user_maaldar_role_id, self.user_id)
@@ -146,25 +155,57 @@ class DropdownAboveBelowSelect(discord.ui.Select):
 		print(f"Member's [{interaction.user.id}] role position:", user_maaldar_role.position)
 		print(f"Other role's position:", role.position)
 
-		if self.values[0].lower() == "above":
-			if user_maaldar_role.position == role.position + 1:
-				print(f"Member's [{interaction.user.id}] role is already above the other role")
-				await interaction.followup.send(f"Your role is already above **{role.name}**.")
-				return
-		
-			await user_maaldar_role.edit(position=role.position)
-		else:
-			if user_maaldar_role.position == role.position - 1:
-				print(f"Member's [{interaction.user.id}] role is already below the other role")
-				await interaction.followup.send(f"Your role is already below **{role.name}**.")
-				return
+		main_role_id = configuration.get("main_role_id")
+		main_role = interaction.guild.get_role(int(main_role_id)) if main_role_id else None
+		if main_role is not None and user_maaldar_role.position <= main_role.position:
+			await interaction.followup.send(
+				"Your role is currently below the custom roles section, so I can't reposition it.\n"
+				"> Ask Fauj to move it back into the section first 🙏"
+			)
+			self.view.stop()
+			return
 
-			await user_maaldar_role.edit(position=role.position - 1)
-		
+		guild_order = interaction.guild.roles
+		try:
+			mover_index = guild_order.index(user_maaldar_role)
+			target_index = guild_order.index(role)
+		except ValueError:
+			await interaction.followup.send("Couldn't find those roles any more — try again 🙏")
+			self.view.stop()
+			return
+
+		wants_above = self.values[0].lower() == "above"
+
+		if wants_above and mover_index == target_index + 1:
+			print(f"Member's [{interaction.user.id}] role is already above the other role")
+			await interaction.followup.send(f"Your role is already above **{role.name}**.")
+			self.view.stop()
+			return
+		if not wants_above and mover_index == target_index - 1:
+			print(f"Member's [{interaction.user.id}] role is already below the other role")
+			await interaction.followup.send(f"Your role is already below **{role.name}**.")
+			self.view.stop()
+			return
+
+		moved = False
+		try:
+			if wants_above:
+				await user_maaldar_role.move(below=role, reason="maaldar position")
+			else:
+				await user_maaldar_role.move(above=role, reason="maaldar position")
+			moved = True
+		except Exception as error:
+			print(f"[!] Failed to move role for {interaction.user.id}: {error}")
+
+		if not moved:
+			await interaction.followup.send(
+				"Couldn't move your role — the server's role list is in a state I can't reposition around.\n"
+				"> Ask Fauj to move it manually 🙏"
+			)
+			self.view.stop()
+			return
+
 		await interaction.followup.send(f"Your role has been put {self.values[0].lower()} **{role.name}** ✨")
-		await interaction.followup.send(
-      "-# **Note**: Sometimes role positioning doesn't work since this server has many roles. If it didn't, ask Fauj to move it manually."
-    )
 		self.view.stop()
 
 class DropdownAboveBelow(discord.ui.View):
