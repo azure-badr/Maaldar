@@ -81,13 +81,6 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     await Color.color(interaction=interaction, color=color, secondary_color=secondary_color)
     await send_website_tip(interaction)
 
-  @color.command(name="holographic", description="Sets your role color to be holographic")
-  @app_commands.checks.has_any_role(*configuration["role_ids"])
-  @has_custom_role()
-  async def _holographic_color(self, interaction: discord.Interaction):
-    await Color.color(interaction=interaction, color="holographic")
-    await send_website_tip(interaction)
-
   # Icon Command
   @app_commands.command(
     name="icon", 
@@ -171,7 +164,6 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_name.error
   @_role.error
   @_color.error
-  @_holographic_color.error
   @_icon.error
   @_assign.error
   @_unassign.error
