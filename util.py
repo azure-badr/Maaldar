@@ -195,6 +195,20 @@ def select_all(query):
 		
   return result
 
+def parse_role_colors(role_color_str):
+	"""role_color is a single int or a comma-joined list for gradient/holographic roles."""
+	if not role_color_str:
+		return {}
+
+	color_keys = ["color", "secondary_color", "tertiary_color"]
+
+	return {
+		key: discord.Color(int(value))
+		for key, value in zip(color_keys, str(role_color_str).split(","))
+		if value
+	}
+
+
 def get_maaldar_user(user_id):
   return select_one(f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'")
 

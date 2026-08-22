@@ -16,10 +16,9 @@ class UserLeaveEvent(commands.Cog):
     if maaldar_user is None:
       return
     
-    delete_query(f"DELETE FROM Maaldar WHERE user_id = '{member.id}'")
-
     role = guild.get_role(int(maaldar_user[1]))
-    if is_old_maaldar(member.id):
+
+    if role is not None and is_old_maaldar(member.id):
       print(f"[!] A Maaldar user {member.id} who has been boosting for more than 3 months has left the server. Saving their role if it exists....")
       maaldar_role = select_one(f"SELECT * FROM MaaldarRoles WHERE user_id = '{member.id}'")
 
@@ -37,10 +36,13 @@ class UserLeaveEvent(commands.Cog):
           f"UPDATE MaaldarRoles SET role_name = %s, role_color = %s WHERE user_id = '{member.id}'",
           (role.name, role_color)
         )
-      
+
       print(f"[!] Saved role for {member.id}")
-    
-    await role.delete()
+
+    delete_query(f"DELETE FROM Maaldar WHERE user_id = '{member.id}'")
+
+    if role is not None:
+      await role.delete()
 
 async def setup(bot: commands.Bot):
   await bot.add_cog(UserLeaveEvent(bot), guilds=[discord.Object(id=configuration["guild_id"])])

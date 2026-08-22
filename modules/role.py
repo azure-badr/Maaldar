@@ -28,6 +28,9 @@ class Role:
 			print(f"Role {role.name} {role.id} created and assigned to {member.name}")
 			await interaction.followup.send(f"**{name}** created and assigned to you ✨")
 			
+			# INVERTED: above=anchor places the role visually BELOW the anchor,
+			# i.e. at the top of the custom-roles band. See
+			# appeal/verify/18_move_semantics.py. Do not swap to below=.
 			anchor = guild.get_role(configuration["custom_role_id"])
 			try:
 				await role.move(above=anchor, reason="maaldar role creation")
@@ -165,6 +168,10 @@ class DropdownAboveBelowSelect(discord.ui.Select):
 			self.view.stop()
 			return
 
+		# discord.py's above=/below= are INVERTED vs visual hierarchy:
+		# guild.roles is sorted ascending (index 0 == @everyone), so
+		# move(below=X) places this role visually ABOVE X. Verified in
+		# appeal/verify/18_move_semantics.py. Do not "fix" this.
 		guild_order = interaction.guild.roles
 		try:
 			mover_index = guild_order.index(user_maaldar_role)
@@ -176,6 +183,7 @@ class DropdownAboveBelowSelect(discord.ui.Select):
 
 		wants_above = self.values[0].lower() == "above"
 
+		# Already adjacent in the requested direction? Nothing to do.
 		if wants_above and mover_index == target_index + 1:
 			print(f"Member's [{interaction.user.id}] role is already above the other role")
 			await interaction.followup.send(f"Your role is already above **{role.name}**.")

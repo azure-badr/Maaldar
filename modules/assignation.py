@@ -4,6 +4,7 @@ import discord
 
 class Assignation:
 	TOTAL_MESSAGE_LENGTH = 2000
+	MAX_ROLE_MEMBERS = 6
 	
 	async def assign(interaction: discord.Interaction, user: discord.Member = None) -> None:
 		_, maaldar_user_role_id = interaction.extras["maaldar_user"]
@@ -14,8 +15,12 @@ class Assignation:
 
 			return
 		
-		if role.tertiary_color is not None or role.secondary_color is not None:
-			await interaction.followup.send("You cannot assign your role to others while it has a gradient style applied.\nSee who has your role with `/maaldar list`")
+		if len(role.members) >= Assignation.MAX_ROLE_MEMBERS:
+			await interaction.followup.send(
+				f"Your role is full ({len(role.members)}/{Assignation.MAX_ROLE_MEMBERS}). "
+				f"Free a slot with `/maaldar unassign user:<name>` first."
+			)
+
 			return
 
 		view = DropdownView(user, role)
@@ -103,6 +108,12 @@ class Dropdown(discord.ui.Select):
 			return
 
 		if self.values[0] == "Yes":
+			if len(self.role.members) >= Assignation.MAX_ROLE_MEMBERS:
+				await interaction.response.send_message("That role filled up before you accepted 😔", ephemeral=True)
+				self.view.stop()
+
+				return
+
 			await self.assignee.add_roles(self.role)
 			await interaction.response.send_message("The role has been assigned to you ✨")
 		

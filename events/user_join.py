@@ -2,21 +2,10 @@ import discord
 import discord.http
 from discord.ext import commands
 
-from util import configuration, insert_query, select_one
+from util import configuration, insert_query, select_one, parse_role_colors
 class UserJoinEvent(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
-  
-  def _get_colors(self, role_color_str: str):
-    color_keys = ["color", "secondary_color", "tertiary_color"]
-    colors = role_color_str.split(',')
-
-    return {
-        key: int(value)
-        for key, value in zip(color_keys, colors)
-        if value
-    }
-  
   
   """
   This event is triggered when a user joins the server,
@@ -31,7 +20,7 @@ class UserJoinEvent(commands.Cog):
     if maaldar_role is None:
       return
     
-    if len(guild.roles) == 250:
+    if len(guild.roles) >= 250:
       return
     
     print(f"[!] An old Maaldar user {member.id} has joined the server. Recreating their role...")
@@ -40,10 +29,12 @@ class UserJoinEvent(commands.Cog):
     )
 
     role_color_str: str = maaldar_role[2]
-    role_colors = self._get_colors(role_color_str)
+    role_colors = parse_role_colors(role_color_str)
     if role_colors:
       role = await role.edit(**role_colors)
 
+    # INVERTED: above=anchor places the role visually BELOW the anchor.
+    # See appeal/verify/18_move_semantics.py.
     anchor = guild.get_role(configuration["custom_role_id"])
     try:
       await role.move(above=anchor, reason="maaldar rejoin")
