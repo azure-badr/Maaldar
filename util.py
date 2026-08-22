@@ -105,8 +105,8 @@ COLOR_PICKER_COMMAND = "maaldar color-picker"
 # reached with a per-user session token and /maaldar color-picker replies
 # ephemerally, so a link must never be posted into a public response.
 WEBSITE_TIP = (
-	"{user} you can also set your color and upload, link or crop a role icon "
-	"on the website. Try {command}"
+	"{user} you can pick solid or gradient colors, preview them in light and "
+	"dark, and upload, link or crop a role icon on the website. Try {command}"
 )
 
 # Show the tip on a user's first color/icon command, then every 5th after that,

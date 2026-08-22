@@ -22,7 +22,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     self.delete_sessions.start()
     self.clear_tip_counts.start()
 
-  color = app_commands.Group(name="color", description="For setting simple, gradient and holographic colors")
+  color = app_commands.Group(name="color", description="Set a solid or gradient color for your role")
   
   class NoCustomRole(app_commands.CheckFailure):
     pass
@@ -70,7 +70,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     await Name.name(interaction=interaction, new_name=new_name)
 
   # Color Commands
-  @color.command(name="set", description="Sets a new color for your role. Leave options empty to set the default color")
+  @color.command(name="set", description="Set your role color by hex. Try /maaldar color-picker to pick it visually")
   @app_commands.describe(
     color="Primary color for your role (e.g #86ADEB)", 
     secondary_color="Secondary color for a gradient role style (e.g #AAAAAA)"
@@ -91,7 +91,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   # Icon Command
   @app_commands.command(
     name="icon", 
-    description="Sets an icon for your role. If the url and attachment are not provided, it removes the icon"
+    description="Set your role icon, or remove it by passing nothing. Upload and crop on /maaldar color-picker"
   )
   @app_commands.describe(
     attachment="Image to be used as the icon",
@@ -141,17 +141,18 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   "Palette Command"
   @app_commands.command(
     name="palette",
-    description="Gets a color palette for your profile picture"
+    description="Get colors from your profile picture. /maaldar color-picker applies them in one click"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
   async def _palette(self, interaction: discord.Interaction) -> None:
     await Palette.palette(interaction=interaction)
+    await send_website_tip(interaction)
 
   "Color Picker Command"
   @app_commands.command(
     name="color-picker",
-    description="Pick a color for your role from a colour picker"
+    description="Open the web editor: pick colors visually, upload and crop a role icon"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
