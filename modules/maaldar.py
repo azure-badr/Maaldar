@@ -10,7 +10,7 @@ from modules.role import Role
 from modules.name import Name
 from modules.icon import Icon
 
-from util import get_maaldar_user, configuration, select_one
+from util import get_maaldar_user, configuration, select_one, send_website_tip, reset_command_usage_counts
 
 from psycopg2.errors import UndefinedFunction
 
@@ -20,6 +20,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
     self.delete_sessions.start()
+    self.clear_tip_counts.start()
 
   color = app_commands.Group(name="color", description="For setting simple, gradient and holographic colors")
   
@@ -78,12 +79,14 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @has_custom_role()
   async def _color(self, interaction: discord.Interaction, color: str = None, secondary_color: str = None):
     await Color.color(interaction=interaction, color=color, secondary_color=secondary_color)
+    await send_website_tip(interaction)
 
   @color.command(name="holographic", description="Sets your role color to be holographic")
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
   async def _holographic_color(self, interaction: discord.Interaction):
     await Color.color(interaction=interaction, color="holographic")
+    await send_website_tip(interaction)
 
   # Icon Command
   @app_commands.command(
@@ -98,6 +101,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @has_custom_role()
   async def _icon(self, interaction: discord.Interaction, attachment: discord.Attachment = None, url: str = None) -> None:
     await Icon.icon(interaction=interaction, attachment=attachment, url=url)
+    await send_website_tip(interaction)
   
   # Assign Command
   @app_commands.command(
@@ -214,6 +218,16 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   
   @delete_sessions.before_loop
   async def before_delete_sessions(self):
+    await self.bot.wait_until_ready()
+
+  # The website tip counters are only a nudge, so they're kept in memory and
+  # dropped wholesale rather than grown for the lifetime of the process.
+  @tasks.loop(hours=24)
+  async def clear_tip_counts(self):
+    reset_command_usage_counts()
+
+  @clear_tip_counts.before_loop
+  async def before_clear_tip_counts(self):
     await self.bot.wait_until_ready()
   
 async def setup(bot: commands.Bot):

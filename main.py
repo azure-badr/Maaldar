@@ -9,7 +9,10 @@ class MaaldarBot(commands.Bot):
     
     async def on_ready(self) -> None:
       await self.wait_until_ready()
-      await self.tree.sync(guild=discord.Object(id=configuration["guild_id"]))
+      synced = await self.tree.sync(guild=discord.Object(id=configuration["guild_id"]))
+      # Command IDs are only known after syncing, and they're what makes a
+      # command mention render as a clickable link.
+      cache_command_mentions(synced)
 
     async def setup_hook(self) -> None:
       await self.load_extension("events.boost")

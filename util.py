@@ -65,6 +65,95 @@ except KeyError:
 		open("config.json", 'r').read()
 	)
 
+# qualified command name -> "</name:id>" mention, filled in once the command
+# tree has synced. Discord only renders a command as clickable when the mention
+# carries the real command ID, which is only known after syncing.
+command_mentions = {}
+
+
+def cache_command_mentions(app_commands_list) -> None:
+	"""Record clickable mentions for synced commands and their subcommands."""
+	from discord.app_commands import AppCommandGroup
+
+	command_mentions.clear()
+
+	for command in app_commands_list:
+		command_mentions[command.name] = command.mention
+
+		for option in command.options:
+			# Subcommands and subcommand groups can be mentioned; plain
+			# parameters cannot.
+			if not isinstance(option, AppCommandGroup):
+				continue
+
+			command_mentions[option.qualified_name] = option.mention
+
+			for nested in option.options:
+				if isinstance(nested, AppCommandGroup):
+					command_mentions[nested.qualified_name] = nested.mention
+
+
+def get_command_mention(qualified_name: str) -> str:
+	"""Clickable mention for a command, or plain text until the tree has synced."""
+	return command_mentions.get(qualified_name, f"`/{qualified_name}`")
+
+
+COLOR_PICKER_COMMAND = "maaldar color-picker"
+
+# Nudge toward the web editor, posted as its own message after a color or icon
+# command. Points at the command rather than linking the site: the site is
+# reached with a per-user session token and /maaldar color-picker replies
+# ephemerally, so a link must never be posted into a public response.
+WEBSITE_TIP = (
+	"{user} you can also set your color and upload, link or crop a role icon "
+	"on the website. Try {command}"
+)
+
+# Show the tip on a user's first color/icon command, then every 5th after that,
+# so regulars aren't nagged on every use.
+TIP_EVERY = 5
+
+# user_id -> how many color/icon commands they've run. In memory only: a bot
+# restart just means someone sees the tip once more than they would have.
+command_usage_counts = {}
+
+
+def reset_command_usage_counts() -> None:
+	"""Drop the tip counters so the dict can't grow without bound.
+
+	Resetting only means some people see the tip once sooner than they would
+	have, which is fine for a nudge, so there's no need to track per user
+	timestamps just to expire entries individually.
+	"""
+	tracked = len(command_usage_counts)
+	command_usage_counts.clear()
+
+	if tracked:
+		print(f"Cleared website tip counters for {tracked} users")
+
+
+def should_send_website_tip(user_id) -> bool:
+	count = command_usage_counts.get(user_id, 0) + 1
+	command_usage_counts[user_id] = count
+
+	return count % TIP_EVERY == 1
+
+
+async def send_website_tip(interaction) -> None:
+	"""Post the web editor nudge as a separate message, rate limited per user."""
+	if not should_send_website_tip(interaction.user.id):
+		return
+
+	try:
+		await interaction.followup.send(
+			WEBSITE_TIP.format(
+				user=interaction.user.mention,
+				command=get_command_mention(COLOR_PICKER_COMMAND),
+			)
+		)
+	except Exception as error:
+		print(f"[!] Could not send website tip: {error}")
+
 import psycopg2_pool
 
 pool = psycopg2_pool.ConnectionPool(minconn=5, maxconn=20, dsn=configuration["connection_string"], idle_timeout=60)
