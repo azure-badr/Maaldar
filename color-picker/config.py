@@ -60,6 +60,37 @@ def select_one(query, params):
 	
 	return result
 
+def execute_query(query, params):
+	with pool.getconn() as conn:
+		with conn.cursor() as cursor:
+			cursor.execute(query, params)
+		conn.commit()
+
+# Mirrors util.set_maaldar_role_info. The bot's util imports dependencies this
+# process doesn't have, so the snapshot write is duplicated rather than shared.
+DAYS_IN_SECONDS_REQUIRED_FOR_ROLE = 15_552_000
+
+def set_maaldar_role_info(user_id, role_name, role_color):
+	duration = select_one(
+		"SELECT boosting_since FROM MaaldarDuration WHERE user_id = %s", (str(user_id),)
+	)
+	if duration is None or duration[0] < DAYS_IN_SECONDS_REQUIRED_FOR_ROLE:
+		return
+
+	existing = select_one(
+		"SELECT user_id FROM MaaldarRoles WHERE user_id = %s", (str(user_id),)
+	)
+	if existing is None:
+		execute_query(
+			"INSERT INTO MaaldarRoles VALUES (%s, %s, %s)",
+			(str(user_id), role_name, role_color)
+		)
+	else:
+		execute_query(
+			"UPDATE MaaldarRoles SET role_name = %s, role_color = %s WHERE user_id = %s",
+			(role_name, role_color, str(user_id))
+		)
+
 from colorthief import ColorThief
 import aiohttp
 from io import BytesIO

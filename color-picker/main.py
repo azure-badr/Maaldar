@@ -15,6 +15,7 @@ import os.path
 from config import (
   configuration,
   select_one,
+  set_maaldar_role_info,
   get_dominant_colors,
   fetch_image_from_url,
   decode_image_data_uri,
@@ -183,6 +184,16 @@ async def main_route(token):
     secondary_color=secondary_color,
   )
 
+# Discord reads #000000 as "no color" and falls through to the member's next
+# colored role, so nudge pure black to the nearest visually identical value.
+BLACK_SUBSTITUTE = 0x000001
+
+
+def parse_color(value):
+  color_int = int(value[1:], 16) if value.startswith("#") else int(value, 16)
+  return BLACK_SUBSTITUTE if color_int == 0 else color_int
+
+
 @quart_app.route("/set_role_color", methods=["POST"])
 async def set_role_color():
   bytes_data = await request.body
@@ -213,19 +224,22 @@ async def set_role_color():
   secondary_color_int = None
 
   try:
-    color = data["color"]
-    color_int = int(color[1:], 16) if color.startswith("#") else int(color, 16)
-    
-    edit_params = {"color": discord.Color(color_int)}
-    
-    if "secondary_color" in data and data["secondary_color"]:
-      secondary_color = data["secondary_color"]
-      secondary_color_int = int(secondary_color[1:], 16) if secondary_color.startswith("#") else int(secondary_color, 16)
+    color_int = parse_color(data["color"])
+
+    # discord.py treats None as "clear this" and MISSING as "leave it alone",
+    # so a solid request has to pass None or the old gradient survives.
+    edit_params = {"color": discord.Color(color_int), "secondary_color": None, "tertiary_color": None}
+
+    if data.get("secondary_color"):
+      secondary_color_int = parse_color(data["secondary_color"])
       edit_params["secondary_color"] = discord.Color(secondary_color_int)
-    
+
     await role.edit(**edit_params)
   except Exception as e:
     return f"Invalid color format: {str(e)}", 422
+
+  role_colors = [str(c) for c in [color_int, secondary_color_int] if c is not None]
+  set_maaldar_role_info(user_id, role.name, ",".join(role_colors))
 
   # Logged outside the try so a logging failure can't be reported as a bad
   # color, and in the background so it doesn't delay the response.
