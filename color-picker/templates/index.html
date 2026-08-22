@@ -31,8 +31,6 @@
       function initializeColorMode() {
         const hasSecondaryColor = {{ 'true' if secondary_color else 'false' }};
 
-        switchMode('solid');
-
         const colorPickerSwatch = document.getElementById('color-picker');
 
         if (hasSecondaryColor) {
@@ -42,18 +40,16 @@
           const primaryColor = primaryColorValue > 0 ? '#' + primaryColorValue.toString(16).padStart(6, '0') : '#5865f2';
           const secondaryColor = secondaryColorValue > 0 ? '#' + secondaryColorValue.toString(16).padStart(6, '0') : '#5865f2';
 
-          // Set the solid color picker to the primary color
+          // Seed both pickers from the role, then open the tab that matches it:
+          // landing on Solid would let "Set color" drop the gradient silently.
           colorPickerSwatch.jscolor.fromString(primaryColor);
+          document.getElementById('gradient-color-1').jscolor.fromString(primaryColor);
+          document.getElementById('gradient-color-2').jscolor.fromString(secondaryColor);
 
-          // Apply gradient to username
-          ['dark', 'light'].forEach((theme) => {
-            document.getElementById(`username-${theme}`)?.classList.add('gradient');
-          });
-
-          // Set the CSS custom properties for the gradient
-          document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
-          document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
+          switchMode('gradient');
+          handleGradientColorChange();
         } else {
+          switchMode('solid');
           const colorValue = {{ color.value if color else 0 }};
           const solidColor = colorValue > 0 ? '#' + colorValue.toString(16).padStart(6, '0') : '#5865f2';
           colorPickerSwatch.jscolor.fromString(solidColor);

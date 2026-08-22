@@ -17,12 +17,13 @@ class BoostEvent(commands.Cog):
     started = int(premium_since.timestamp())
 
     data = select_one(f"SELECT last_credited_at FROM MaaldarDuration WHERE user_id = '{member_id}'")
+    credited_until = max(data[0] or started, started) if data else started
+    earned = max(now - credited_until, 0)
+
     if data is None:
-      insert_query(f"INSERT INTO MaaldarDuration VALUES ('{member_id}', '{now - started}', '{now}')")
+      insert_query(f"INSERT INTO MaaldarDuration VALUES ('{member_id}', '{earned}', '{now}')")
       return
 
-    credited_until = max(data[0] or started, started)
-    earned = now - credited_until
     if earned <= 0:
       return
 

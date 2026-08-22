@@ -201,10 +201,19 @@ def parse_role_colors(role_color_str):
 		return {}
 
 	color_keys = ["color", "secondary_color", "tertiary_color"]
+	values = [v.strip() for v in str(role_color_str).split(",")]
+
+	if not all(v.isdigit() for v in values if v):
+		print(f"[!] Unparseable role_color {role_color_str!r}, ignoring")
+		return {}
+
+	if not values[0]:
+		print(f"[!] role_color {role_color_str!r} has no primary color, ignoring")
+		return {}
 
 	return {
 		key: discord.Color(int(value))
-		for key, value in zip(color_keys, str(role_color_str).split(","))
+		for key, value in zip(color_keys, values)
 		if value
 	}
 
