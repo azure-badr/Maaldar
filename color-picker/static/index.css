@@ -85,6 +85,24 @@ body {
   padding: 1rem;
 }
 
+/* Discord's light theme, so a role color can be checked against both. */
+.preview-card.light {
+  --bg-message: #ffffff;
+  --text-normal: #313338;
+  --text-muted: #5c5e66;
+  --border: rgba(0, 0, 0, 0.08);
+}
+
+.preview-card.light .server-tag {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .message-preview {
   display: flex;
   gap: 16px;

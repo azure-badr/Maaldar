@@ -210,9 +210,6 @@ async def set_role_color():
   if not role:
     return "Role not found", 404
   
-  if len(role.members) > 1 and "secondary_color" in data:
-    return "Cannot set gradient for shared role", 403
-  
   secondary_color_int = None
 
   try:

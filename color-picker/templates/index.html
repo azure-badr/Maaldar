@@ -16,6 +16,8 @@
     ></script>
     <script defer>
       let currentMode = 'solid';
+      // Which gradient picker a palette swatch fills; set by touching either one.
+      let activeGradientPicker = 'gradient-color-1';
 
       window.addEventListener('load', () => {
         initializeColorMode();
@@ -44,8 +46,9 @@
           colorPickerSwatch.jscolor.fromString(primaryColor);
 
           // Apply gradient to username
-          const username = document.getElementById('username');
-          username.classList.add('gradient');
+          ['dark', 'light'].forEach((theme) => {
+            document.getElementById(`username-${theme}`)?.classList.add('gradient');
+          });
 
           // Set the CSS custom properties for the gradient
           document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
@@ -54,7 +57,10 @@
           const colorValue = {{ color.value if color else 0 }};
           const solidColor = colorValue > 0 ? '#' + colorValue.toString(16).padStart(6, '0') : '#5865f2';
           colorPickerSwatch.jscolor.fromString(solidColor);
-          document.getElementById('username').style.color = solidColor;
+          ['dark', 'light'].forEach((theme) => {
+            const el = document.getElementById(`username-${theme}`);
+            if (el) el.style.color = solidColor;
+          });
         }
       }
 
@@ -109,10 +115,29 @@
         });
       }
 
+      // The message preview is rendered twice, once per Discord theme, so a role
+      // color can be judged against both backgrounds.
+      const PREVIEW_THEMES = ['dark', 'light'];
+
+      function previewUsernames() {
+        return PREVIEW_THEMES.map((t) => document.getElementById(`username-${t}`)).filter(Boolean);
+      }
+
+      function previewRoleIcons() {
+        return PREVIEW_THEMES.map((t) => document.getElementById(`role-icon-${t}`)).filter(Boolean);
+      }
+
       function initializeHexInputs() {
         bindHexInput("color-picker-hex", "color-picker", handleColorChange);
         bindHexInput("gradient-color-1-hex", "gradient-color-1", handleGradientColorChange);
         bindHexInput("gradient-color-2-hex", "gradient-color-2", handleGradientColorChange);
+
+        ["gradient-color-1", "gradient-color-2"].forEach((pickerId) => {
+          const track = () => { activeGradientPicker = pickerId; };
+          document.getElementById(pickerId)?.addEventListener("focus", track);
+          document.getElementById(pickerId)?.addEventListener("click", track);
+          document.getElementById(`${pickerId}-hex`)?.addEventListener("focus", track);
+        });
 
         // Seed hex fields from whatever the swatches were initialized to.
         ["color-picker", "gradient-color-1", "gradient-color-2"].forEach((swatchId) => {
@@ -207,7 +232,10 @@
       function handleColorChange(event) {
         const colorPicker = document.getElementById("color-picker");
         const hex = colorPicker.jscolor.toHEXString();
-        document.getElementById("username").style.color = hex;
+        previewUsernames().forEach((el) => {
+          el.classList.remove("gradient");
+          el.style.color = hex;
+        });
 
         const hexInput = document.getElementById("color-picker-hex");
         if (hexInput && document.activeElement !== hexInput) {
@@ -238,8 +266,7 @@
         gradientPreview.style.backgroundPosition = '-100% 0%';
 
         // Update username with Discord-style gradient
-        const username = document.getElementById("username");
-        username.classList.add("gradient");
+        previewUsernames().forEach((el) => el.classList.add("gradient"));
 
         // Set CSS custom properties for the gradient colors (Discord's actual mapping)
         document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
@@ -260,17 +287,17 @@
         updateDominantColorsVisibility();
         
         // Reset username styling when switching modes
-        const username = document.getElementById("username");
+        const usernames = previewUsernames();
         if (mode === 'solid') {
-          username.classList.remove("gradient");
+          usernames.forEach((el) => el.classList.remove("gradient"));
           const colorPicker = document.getElementById("color-picker");
-          username.style.color = colorPicker.jscolor.toHEXString();
+          usernames.forEach((el) => { el.style.color = colorPicker.jscolor.toHEXString(); });
         } else if (mode === 'gradient') {
-          username.classList.remove("gradient");
+          usernames.forEach((el) => el.classList.remove("gradient"));
           // Re-apply gradient with the currently selected colors
           const primaryColor = document.getElementById("gradient-color-1").jscolor.toHEXString();
           const secondaryColor = document.getElementById("gradient-color-2").jscolor.toHEXString();
-          username.classList.add("gradient");
+          usernames.forEach((el) => el.classList.add("gradient"));
           document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
           document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
         }
@@ -455,13 +482,10 @@
         updateDominantColorsVisibility();
       }
 
-      // The extracted palette belongs to the solid color picker, so it only
-      // makes sense while that's the visible control.
       function updateDominantColorsVisibility() {
         const section = document.querySelector(".dominant-colors-section");
         if (!section) return;
-        section.style.display =
-          currentTab === 'color' && currentMode === 'solid' ? 'block' : 'none';
+        section.style.display = currentTab === 'color' ? 'block' : 'none';
       }
 
       // --- Role icon --------------------------------------------------------
@@ -532,7 +556,7 @@
       }
 
       function initializeRoleIcon() {
-        const roleIcon = document.getElementById("role-icon");
+        const [roleIcon] = previewRoleIcons();
         originalRoleIconSrc = roleIcon && !roleIcon.hidden ? roleIcon.src : null;
         refreshActionButtons();
 
@@ -919,16 +943,15 @@
 
       // Mirrors the staged icon onto the Discord-style message preview.
       function setMessageRoleIcon(src) {
-        const roleIcon = document.getElementById("role-icon");
-        if (!roleIcon) return;
-
-        if (src) {
-          roleIcon.src = src;
-          roleIcon.hidden = false;
-        } else {
-          roleIcon.removeAttribute("src");
-          roleIcon.hidden = true;
-        }
+        previewRoleIcons().forEach((roleIcon) => {
+          if (src) {
+            roleIcon.src = src;
+            roleIcon.hidden = false;
+          } else {
+            roleIcon.removeAttribute("src");
+            roleIcon.hidden = true;
+          }
+        });
       }
 
       function formatSize(bytes) {
@@ -989,10 +1012,27 @@
       }
 
       function setDominantColor(color) {
+        if (currentMode === 'gradient') {
+          const picker = document.getElementById(activeGradientPicker);
+          picker.jscolor.fromString(`#${color}`);
+
+          const hexInput = document.getElementById(`${activeGradientPicker}-hex`);
+          if (hexInput) {
+            hexInput.value = picker.jscolor.toHEXString();
+            hexInput.classList.remove("invalid");
+          }
+
+          handleGradientColorChange();
+          return;
+        }
+
         const colorPicker = document.getElementById("color-picker");
         colorPicker.jscolor.fromString(`#${color}`);
         const hex = colorPicker.jscolor.toHEXString();
-        document.getElementById("username").style.color = hex;
+        previewUsernames().forEach((el) => {
+          el.classList.remove("gradient");
+          el.style.color = hex;
+        });
 
         const hexInput = document.getElementById("color-picker-hex");
         if (hexInput) {
@@ -1007,8 +1047,8 @@
       <!-- Main Content -->
       <main class="main-content">
         <!-- Preview Section -->
-        <section class="preview-section">
-          <div class="preview-card">
+        {% macro message_preview(theme) %}
+          <div class="preview-card {{ theme }}">
             <div class="message-preview">
               <div class="profile-picture">
                 <img src="{{ avatar_url }}" alt="Profile picture" />
@@ -1016,7 +1056,7 @@
               <div class="message-content">
                 <div class="message-header">
                   <div class="user-info">
-                    <span style="color: {{ color }};" id="username" class="username">{{ name }}</span>
+                    <span style="color: {{ color }};" id="username-{{ theme }}" class="username">{{ name }}</span>
                     {% if server_tag %}
                     <span class="server-tag">
                       {% if server_tag_badge %}
@@ -1033,7 +1073,7 @@
                     {% endif %}
                     <img
                       src="{{ role_icon if role_icon else '' }}"
-                      id="role-icon"
+                      id="role-icon-{{ theme }}"
                       class="role-icon"
                       alt=""
                       {% if not role_icon %}hidden{% endif %}
@@ -1047,6 +1087,11 @@
               </div>
             </div>
           </div>
+        {% endmacro %}
+
+        <section class="preview-section">
+          {{ message_preview("dark") }}
+          {{ message_preview("light") }}
         </section>
 
         <!-- Tabs -->
