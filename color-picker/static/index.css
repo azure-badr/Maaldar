@@ -1,3 +1,37 @@
+/* ==========================================================================
+   Design tokens
+   Discord's own dark-theme palette, with a slightly cleaner surface ramp.
+   ========================================================================== */
+:root {
+  /* Surfaces */
+  --bg-app: #1a1b1e;
+  --bg-card: #232428;
+  --bg-input: #1e1f22;
+  --bg-message: #313338; /* Discord's message background, exact */
+
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Text: Discord's values */
+  --text-heading: #f2f3f5;
+  --text-normal: #dbdee1;
+  --text-muted: #949ba4;
+
+  /* Accents */
+  --brand: #5865f2;
+  --brand-hover: #4752c4;
+  --brand-active: #3c45a5;
+  --success: #23a55a;
+  --danger: #f23f43;
+  --warning: #f0b232;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Reset and Base Styles */
 * {
   margin: 0;
@@ -5,18 +39,18 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
-  color: #ffffff;
-  line-height: 1.6;
-  transition: all 0.3s ease;
-}
-
-
-body {
-  background: #2f3136;
-  color: #dcddde;
+  background: var(--bg-app);
+  color: var(--text-normal);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* App Container */
@@ -26,83 +60,53 @@ body {
   flex-direction: column;
 }
 
-/* Header */
-.header {
-  padding: 2rem 0;
-  text-align: center;
-  transition: all 0.3s ease;
-  background: #23272a;
-  border-bottom: 1px solid #1e2124;
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-.title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: #ffffff;
-}
-
-.subtitle {
-  font-size: 1.1rem;
-  font-weight: 400;
-  opacity: 0.8;
-  margin-bottom: 1.5rem;
-}
-
 /* Main Content */
 .main-content {
   flex: 1;
-  max-width: 1200px;
+  width: 100%;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 3rem 2rem;
+  padding: 3rem 1.5rem;
   display: grid;
-  gap: 2rem;
+  gap: 1.25rem;
   grid-template-columns: 1fr;
+  align-content: start;
 }
 
-/* Cards */
-.preview-card,
-.color-picker-card,
-.dominant-colors-card {
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
-/* Section Titles */
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #ffffff;
-}
-
-.section-description {
-  font-size: 0.95rem;
-  opacity: 0.7;
-  margin-bottom: 1.5rem;
-  color: #dcddde;
-}
-
+/* ==========================================================================
+   Message preview: matches Discord's own message rendering.
+   Sizes, weights, colors and spacing here mirror Discord; leave them alone.
+   (Discord ships the proprietary "gg sans"; Inter is the closest stand-in.)
+   ========================================================================== */
 .preview-card {
-  border-radius: 12px;
-  padding: 0.5rem 1rem;
-  background-color: #1A1A1E;
+  background: var(--bg-message);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 1rem;
 }
 
+/* Discord's light theme, so a role color can be checked against both. */
+.preview-card.light {
+  --bg-message: #ffffff;
+  --text-normal: #313338;
+  --text-muted: #5c5e66;
+  --border: rgba(0, 0, 0, 0.08);
+}
+
+.preview-card.light .server-tag {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
 .message-preview {
   display: flex;
-  gap: 0.8rem;
+  gap: 16px;
   align-items: flex-start;
-  padding: 0.25rem 0;
 }
 
 .profile-picture {
@@ -113,6 +117,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  display: block;
 }
 
 .message-content {
@@ -123,8 +128,7 @@ body {
 .message-header {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.125rem;
+  gap: 0.25rem;
   flex-wrap: wrap;
 }
 
@@ -135,10 +139,9 @@ body {
 }
 
 .username {
-  font-family: 'Inter', sans-serif;
   font-weight: 500;
-  font-size: 0.875rem;
-  line-height: 1.375;
+  font-size: 1rem;
+  line-height: 1.375rem;
   cursor: pointer;
   position: relative;
 }
@@ -163,202 +166,319 @@ body {
   filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
 }
 
+/* Server tag: a small chip carrying the guild's badge and tag text, sitting
+   between the username and the role icon the way Discord orders them. */
+.server-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.server-tag-badge {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.server-tag-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-normal);
+  white-space: nowrap;
+}
+
+/* Discord's chat role icon: a 20px square box, no rounding.
+   object-fit: contain letterboxes non-square artwork instead of
+   stretching it to fill the box, which is what Discord does. */
 .role-icon {
   width: 20px;
   height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .timestamp {
-  font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
-  font-weight: 400;
-  color: #72767d;
-  line-height: 1.375;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.375rem;
 }
 
 .message-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  line-height: 1.375;
-  color: #dcddde;
+  font-size: 1rem;
+  line-height: 1.375rem;
+  color: var(--text-normal);
   word-wrap: break-word;
 }
 
 .message-text p {
   margin: 0;
-  color: #dcddde;
+  color: var(--text-normal);
 }
 
-/* Color Picker Section */
-.color-input-group {
-  margin-bottom: 1.5rem;
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+.color-picker-card,
+.icon-card,
+.dominant-colors-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
 }
 
-/* Mode Toggle */
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-heading);
+  margin-bottom: 1.75rem;
+}
+
+.section-description {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+/* Field labels: small uppercase, the way Discord labels its form fields */
+.mode-label,
+.color-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.625rem;
+}
+
+/* ==========================================================================
+   Mode toggle: segmented control
+   ========================================================================== */
 .mode-toggle-group {
   margin-bottom: 1.5rem;
 }
 
-.mode-label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 0.75rem;
-  font-size: 0.95rem;
-}
-
 .mode-toggle {
-  display: flex;
-  background: #40444b;
-  border-radius: 3px;
-  padding: 2px;
-  width: fit-content;
+  display: inline-flex;
+  gap: 2px;
+  background: var(--bg-input);
+  border-radius: var(--radius-md);
+  padding: 3px;
 }
 
 .mode-btn {
   background: none;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 3px;
-  color: #72767d;
+  padding: 0.5rem 1.125rem;
+  border-radius: 7px;
+  color: var(--text-muted);
+  font-family: inherit;
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.mode-btn.active {
-  background: #5865f2;
-  color: white;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
 }
 
 .mode-btn:hover:not(.active) {
-  color: #dcddde;
+  color: var(--text-normal);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-/* Gradient Input Group */
+.mode-btn.active {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* ==========================================================================
+   Color inputs
+   ========================================================================== */
+.color-input-group,
 .gradient-input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.color-input-wrapper {
+  display: flex;
+  gap: 0.625rem;
+  align-items: center;
+}
+
+/* Color swatch button (opens the jscolor picker on click).
+   Must stay an empty <button>. jscolor only fills the entire element
+   with the color when there's no text value to reserve space for; on a
+   text input (or a non-empty button) it shrinks to a small icon and
+   leaves the rest of the box at the default background.
+   Note: the width/height inside data-jscolor size the popup palette
+   dialog, not this element; its own box size is set here. */
+.color-swatch {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
+}
+
+.color-swatch:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.color-swatch:active {
+  transform: scale(0.96);
+}
+
+.color-swatch:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Manually-typed hex code field */
+.color-hex-input {
+  height: 44px;
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 0 0.875rem;
+  color: var(--text-normal);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.color-hex-input:hover {
+  background: #202226;
+}
+
+.color-hex-input:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.color-hex-input.invalid {
+  border-color: var(--danger);
+}
+
+.color-hex-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Gradient mode */
+.gradient-preview {
+  margin-bottom: 1.25rem;
+}
+
+.gradient-preview-box {
+  width: 100%;
+  height: 56px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: linear-gradient(to right, #ff6b6b, #4ecdc4, #ff6b6b);
+  background-size: 200% 100%;
+  background-position: -100% 0%;
+  transition: background-position 0.6s ease-out;
+}
+
+.gradient-preview-box:hover {
+  background-position: 0% 0%;
 }
 
 .gradient-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .gradient-color-input {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
-.gradient-preview {
-  margin-bottom: 1rem;
-  display: flex;
-  justify-content: center;
-}
-
-.gradient-preview-box {
-  width: 100%;
-  height: 50px;
-  border-radius: 8px;
-  border: 1px solid #202225;
-  background: linear-gradient(to right, #ff6b6b, #4ecdc4, #ff6b6b);
-  background-size: 200% 100%;
-  background-position: -100% 0%;
-  transition: background-position 0.6s ease-out, box-shadow 0.3s ease;
-}
-
-.gradient-preview-box:hover {
-  background-position: 0% 0%;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
-}
-
-.color-label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 0.75rem;
-  font-size: 0.95rem;
-}
-
-.color-input-wrapper {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.color-input {
-  background: #40444b;
-  border: 1px solid #202225;
-  border-radius: 3px;
-  padding: 0.75rem 1rem;
-  color: #dcddde;
-  font-size: 1rem;
-  font-weight: 400;
-  min-width: 200px;
-  transition: all 0.2s ease;
-}
-
-.color-input:focus {
-  outline: none;
-  border-color: #00b0f4;
-}
-
-/* Set Button */
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
 .set-button {
-  background: #5865f2;
+  height: 44px;
+  background: var(--brand);
   border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  color: white;
+  border-radius: var(--radius-md);
+  padding: 0 1.25rem;
+  color: #fff;
+  font-family: inherit;
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.2s ease;
-  min-width: 140px;
   justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s var(--ease), transform 0.1s var(--ease);
 }
 
 .set-button:hover:not(:disabled) {
-  background: #4752c4;
+  background: var(--brand-hover);
 }
 
-.set-button:active {
-  background: #3c45a5;
+.set-button:active:not(:disabled) {
+  background: var(--brand-active);
+  transform: translateY(1px);
+}
+
+.set-button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
 
 .set-button:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.set-button.loading {
-  opacity: 0.8;
-}
-
 .button-icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
-/* Status Message */
-.status-container {
-  margin-top: 1rem;
-}
-
+/* ==========================================================================
+   Status message
+   ========================================================================== */
 .status-message {
+  /* The container always holds this element, so carry the spacing here:
+     it collapses with the message while display is none. */
+  margin-top: 1rem;
   display: none;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.625rem;
   padding: 0.75rem 1rem;
-  border-radius: 3px;
-  font-weight: 400;
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  font-weight: 500;
   font-size: 0.875rem;
-  transition: all 0.2s ease;
 }
 
 .status-message:not(.loading):not(.success):not(.error) {
@@ -366,242 +486,458 @@ body {
 }
 
 .status-message.loading {
-  background: #40444b;
-  border: 1px solid #202225;
-  color: #faa61a;
+  color: var(--warning);
 }
 
 .status-message.success {
-  background: #40444b;
-  border: 1px solid #202225;
-  color: #3ba55c;
+  color: var(--success);
 }
 
 .status-message.error {
-  background: #40444b;
-  border: 1px solid #202225;
-  color: #ed4245;
+  color: var(--danger);
 }
 
 .status-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: currentColor;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
 }
 
 .status-success-icon,
 .status-error-icon {
   width: 16px;
   height: 16px;
-  display: none;
-}
-
-.status-success-icon {
-  color: #43b581;
-}
-
-.status-error-icon {
-  color: #f04747;
+  flex-shrink: 0;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
-/* Dominant Colors Section */
-.dominant-colors-section {
-  margin-top: 1rem;
-}
-
-.dominant-colors-card {
-  background: #2f3136;
-  border: 1px solid #202225;
-  border-radius: 12px;
-  padding: 1rem;
-}
-
+/* ==========================================================================
+   Dominant colors
+   ========================================================================== */
 .dominant-colors-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
-  gap: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .dominant-color-btn {
-  background: none;
-  border: 2px solid transparent;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
   padding: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s var(--ease), border-color 0.15s var(--ease);
 }
 
 .dominant-color-btn:hover {
-  border-color: #5865f2;
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+  transform: scale(1.08);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .dominant-color-btn:active {
   transform: scale(0.98);
 }
 
+.dominant-color-btn:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
 .color-code {
-  font-weight: 500;
-  font-size: 0.6rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  position: relative;
-  z-index: 1;
-  color: white;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 2px 4px;
-  border-radius: 4px;
   display: none;
 }
 
-/* Color Extraction Loader */
+/* Color extraction loader */
 .color-extraction-loader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.loader-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.loader-text {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+.tab-bar {
+  display: flex;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding: 0 0.25rem;
+}
+
+.tab-btn {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0.75rem 0;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s var(--ease);
+}
+
+.tab-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: transparent;
+  transition: background 0.15s var(--ease);
+}
+
+.tab-btn:hover {
+  color: var(--text-normal);
+}
+
+.tab-btn.active {
+  color: var(--text-heading);
+}
+
+.tab-btn.active::after {
+  background: var(--brand);
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Role icon
+   ========================================================================== */
+.icon-source-group {
+  margin-bottom: 1.25rem;
+}
+
+/* The file input is stretched transparently over the whole dropzone, so the
+   browser gives us click-to-browse and drag-and-drop for free. */
+.dropzone {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  gap: 1rem;
+  gap: 0.25rem;
+  padding: 1.75rem 1rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+  text-align: center;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
 }
 
-.loader-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #40444b;
-  border-top: 3px solid #5865f2;
+.dropzone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dropzone:hover,
+.dropzone.dragging {
+  border-color: var(--brand);
+  background: #202226;
+}
+
+.dropzone-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-normal);
+}
+
+.dropzone-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Crop stage */
+.crop-stage {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Backed by a 256px canvas but displayed smaller; pointer deltas are scaled
+   into canvas space in the drag handler. */
+#crop-canvas {
+  width: 220px;
+  height: 220px;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  cursor: grab;
+  touch-action: none;
+  background:
+    repeating-conic-gradient(#2a2c31 0% 25%, #232428 0% 50%) 50% / 12px 12px;
+}
+
+#crop-canvas.dragging {
+  cursor: grabbing;
+}
+
+.crop-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.crop-controls .color-label {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.crop-controls .ghost-button {
+  height: 34px;
+  padding: 0 0.75rem;
+  flex-shrink: 0;
+}
+
+.crop-zoom {
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--bg-input);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.crop-zoom::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  background: var(--brand);
+  border: 2px solid var(--bg-card);
+  cursor: grab;
 }
 
-.loader-text {
-  color: #b9bbbe;
-  font-size: 0.9rem;
-  margin: 0;
+.crop-zoom::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 2px solid var(--bg-card);
+  cursor: grab;
+  border-color: var(--bg-card);
+}
+
+.crop-zoom:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 4px;
+}
+
+.crop-stage .field-hint {
   text-align: center;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.text-input {
+  width: 100%;
+  height: 44px;
+  background: var(--bg-input);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 0 0.875rem;
+  color: var(--text-normal);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: border-color 0.15s var(--ease);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .header {
-    padding: 1.5rem 0;
-  }
-  
-  .title {
-    font-size: 2rem;
-  }
-  
-  .main-content {
-    padding: 2rem 1rem;
-    gap: 1.5rem;
-  }
-  
-  .preview-card,
-  .color-picker-card,
-  .dominant-colors-card {
-    padding: 1.5rem;
-  }
-  
-  .color-input-wrapper {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .color-input {
-    min-width: auto;
-  }
-  
-  .set-button {
-    min-width: auto;
-  }
-  
-  .gradient-inputs {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  
-  .dominant-colors-grid {
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.5rem;
-  }
-  
-  .dominant-color-btn {
-    width: 100%;
-    height: 28px;
-    padding: 0;
-  }
+.text-input:focus {
+  outline: none;
+  border-color: var(--brand);
 }
 
-@media (max-width: 480px) {
-  .header-content {
-    padding: 0 1rem;
-  }
-  
-  .title {
-    font-size: 1.75rem;
-  }
-  
-  .subtitle {
-    font-size: 1rem;
-  }
-  
+.text-input::placeholder {
+  color: var(--text-muted);
+}
+
+.field-hint {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.icon-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: 1.25rem;
+  padding: 0.875rem;
+  background: var(--bg-input);
+  border-radius: var(--radius-md);
+}
+
+/* Checkerboard so transparent PNGs read clearly */
+.icon-preview-frame {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background:
+    repeating-conic-gradient(#2a2c31 0% 25%, #232428 0% 50%) 50% / 12px 12px;
+}
+
+.icon-preview-frame img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.icon-preview-empty {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.icon-preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.icon-preview-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.icon-preview-note {
+  font-size: 0.8125rem;
+  color: var(--text-normal);
+  overflow-wrap: anywhere;
+}
+
+.icon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.ghost-button {
+  height: 44px;
+  padding: 0 1rem;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.ghost-button:hover:not(:disabled) {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.ghost-button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.ghost-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Shared action cooldown, deliberately quiet */
+.cooldown-notice {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
+  margin-top: -0.5rem;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 640px) {
   .main-content {
     padding: 1.5rem 1rem;
+    gap: 1rem;
   }
-  
-  .preview-card,
+
   .color-picker-card,
+  .icon-card,
   .dominant-colors-card {
     padding: 1.25rem;
   }
-  
-  .message-preview {
-    gap: 0.75rem;
+
+  .section-title {
+    margin-bottom: 1.25rem;
   }
-  
-  .profile-picture img {
-    width: 40px;
-    height: 40px;
+
+  .gradient-inputs {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
-  
-  .username {
-    font-size: 0.95rem;
+
+  /* Keep the swatch + hex field on one line, wrap the action button below */
+  .color-input-wrapper {
+    flex-wrap: wrap;
   }
-  
-  .message-text p {
-    font-size: 0.9rem;
+
+  #solid-color-group .color-hex-input {
+    flex: 1 1 120px;
   }
-  
-  .dominant-colors-grid {
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  }
-  
-  .dominant-color-btn {
-    min-height: 60px;
-    padding: 0.75rem;
-  }
-  
-  .color-code {
-    font-size: 0.8rem;
+
+  #solid-color-group .set-button {
+    flex: 1 1 100%;
   }
 }
 
@@ -609,28 +945,22 @@ body {
 @media (prefers-contrast: high) {
   .preview-card,
   .color-picker-card,
-  .dominant-colors-card {
-    border: 2px solid rgba(255, 255, 255, 0.3);
-  }
-  
-  .color-input {
-    border-width: 3px;
-  }
-  
-  .set-button {
-    border: 2px solid rgba(255, 255, 255, 0.3);
+  .icon-card,
+  .dominant-colors-card,
+  .color-hex-input,
+  .color-swatch,
+  .dominant-color-btn {
+    border-color: rgba(255, 255, 255, 0.4);
   }
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  
-  .title {
-    animation: none;
   }
 }

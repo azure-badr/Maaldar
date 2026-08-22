@@ -1,0 +1,10 @@
+# Secrets are supplied as deployed env vars, never baked into the image.
+.env
+
+.venv
+venv
+__pycache__
+*.pyc
+.git
+.gitignore
+config.json
