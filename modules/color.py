@@ -1,4 +1,4 @@
-from util import insert_query, select_one, create_session_token, is_old_maaldar, set_maaldar_role_info
+from util import insert_query, select_one, create_session_token, is_old_maaldar, set_maaldar_role_info, get_command_mention, COLOR_PICKER_COMMAND
 
 import discord
 
@@ -19,10 +19,6 @@ class Color:
       await interaction.followup.send("Role color set to default")
       return
 
-    if color == "holographic" or secondary_color:
-      if len(role.members) > 1:
-        return await interaction.followup.send("You cannot set a style for your role while it is assigned to other people 🙄\nSee who has your role with `/maaldar list`")
-    
     print(f"[!] Setting color for {interaction.user.id}, params: {color}, {secondary_color}")
     if color == "holographic":
       return await interaction.followup.send("Holographic roles are currently disabled. For more information, contact mods.")
@@ -47,7 +43,7 @@ class Color:
     except:
       await interaction.followup.send(
         "Please enter a valid hex value\n"
-        "> Use Google color picker and copy the HEX value"
+        f"> Use {get_command_mention(COLOR_PICKER_COMMAND)} to pick one visually"
       )
       return
 

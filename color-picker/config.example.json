@@ -1,5 +1,6 @@
 {
   "guild_id": "Server ID",
   "token": "Bot token",
-  "connection_string": ""
+  "connection_string": "",
+  "botspam_channel_id": "Channel ID for action logs (optional)"
 }

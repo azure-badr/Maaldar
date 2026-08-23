@@ -1,4 +1,4 @@
-from util import match_url_regex
+from util import match_url_regex, get_command_mention, COLOR_PICKER_COMMAND
 
 import discord
 
@@ -30,7 +30,11 @@ class Icon:
 			return
 
 		if not match_url_regex(url):
-			await interaction.followup.send("Enter a valid URL path!\n> It must end in .png or .jpg")
+			await interaction.followup.send(
+				"Enter a valid URL path!\n"
+				"> It must end in .png or .jpg\n"
+				f"> Or upload one with {get_command_mention(COLOR_PICKER_COMMAND)}"
+			)
 			return
 
 		async with aiohttp.ClientSession() as session:

@@ -3,9 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content"
+    />
     <title>Maaldar Color Picker</title>
-    <link rel="stylesheet" href="../static/index.css" />
+    <link rel="stylesheet" href="../static/index.css?v={{ css_version }}" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script
       defer
@@ -13,40 +16,133 @@
     ></script>
     <script defer>
       let currentMode = 'solid';
+      // Which gradient picker a palette swatch fills; set by touching either one.
+      let activeGradientPicker = 'gradient-color-1';
 
       window.addEventListener('load', () => {
         initializeColorMode();
+        initializeHexInputs();
+        initializeRoleIcon();
+        initializeCropper();
+        initializeSoftKeyboard();
         loadDominantColors();
       });
 
       function initializeColorMode() {
         const hasSecondaryColor = {{ 'true' if secondary_color else 'false' }};
 
-        switchMode('solid');
-        
+        const colorPickerSwatch = document.getElementById('color-picker');
+
         if (hasSecondaryColor) {
           const primaryColorValue = {{ color.value if color else 0 }};
           const secondaryColorValue = {{ secondary_color.value if secondary_color else 0 }};
-          
+
           const primaryColor = primaryColorValue > 0 ? '#' + primaryColorValue.toString(16).padStart(6, '0') : '#5865f2';
           const secondaryColor = secondaryColorValue > 0 ? '#' + secondaryColorValue.toString(16).padStart(6, '0') : '#5865f2';
-          
-          // Set the solid color picker to the primary color
-          document.getElementById('color-picker').value = primaryColor;
-          
-          // Apply gradient to username
-          const username = document.getElementById('username');
-          username.classList.add('gradient');
-          
-          // Set the CSS custom properties for the gradient
-          document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
-          document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
+
+          // Seed both pickers from the role, then open the tab that matches it:
+          // landing on Solid would let "Set color" drop the gradient silently.
+          colorPickerSwatch.jscolor.fromString(primaryColor);
+          document.getElementById('gradient-color-1').jscolor.fromString(primaryColor);
+          document.getElementById('gradient-color-2').jscolor.fromString(secondaryColor);
+
+          switchMode('gradient');
+          handleGradientColorChange();
         } else {
+          switchMode('solid');
           const colorValue = {{ color.value if color else 0 }};
           const solidColor = colorValue > 0 ? '#' + colorValue.toString(16).padStart(6, '0') : '#5865f2';
-          document.getElementById('color-picker').value = solidColor;
-          document.getElementById('username').style.color = solidColor;
+          colorPickerSwatch.jscolor.fromString(solidColor);
+          ['dark', 'light'].forEach((theme) => {
+            const el = document.getElementById(`username-${theme}`);
+            if (el) el.style.color = solidColor;
+          });
         }
+      }
+
+      // --- Manual hex entry -------------------------------------------------
+
+      // Accepts "#abc", "abc", "#aabbcc", "aabbcc" (any case) and returns a
+      // normalized "#RRGGBB" string, or null if the input isn't a valid hex color.
+      function normalizeHex(raw) {
+        let value = (raw || "").trim();
+        if (value.startsWith("#")) value = value.slice(1);
+        if (/^[0-9A-Fa-f]{3}$/.test(value)) {
+          value = value.split("").map((c) => c + c).join("");
+        }
+        if (!/^[0-9A-Fa-f]{6}$/.test(value)) return null;
+        return "#" + value.toUpperCase();
+      }
+
+      // Wires a plain text input up to a jscolor-bound swatch element so typing
+      // a hex code updates the swatch and everything driven off it.
+      //
+      // applyChange has to be called by hand: jscolor only fires its onInput
+      // callback for pointer interaction with the palette, so setting a value
+      // with fromString() would otherwise leave the username preview, the
+      // gradient preview and the CSS variables untouched.
+      function bindHexInput(hexId, swatchId, applyChange) {
+        const hexInput = document.getElementById(hexId);
+        const swatch = document.getElementById(swatchId);
+        if (!hexInput || !swatch) return;
+
+        hexInput.addEventListener("input", () => {
+          const normalized = normalizeHex(hexInput.value);
+          if (normalized) {
+            hexInput.classList.remove("invalid");
+            if (swatch.jscolor) {
+              swatch.jscolor.fromString(normalized);
+              applyChange();
+            }
+          } else if (hexInput.value.trim() !== "") {
+            hexInput.classList.add("invalid");
+          } else {
+            hexInput.classList.remove("invalid");
+          }
+        });
+
+        hexInput.addEventListener("blur", () => {
+          const normalized = normalizeHex(hexInput.value);
+          if (normalized) hexInput.value = normalized;
+        });
+
+        hexInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") hexInput.blur();
+        });
+      }
+
+      // The message preview is rendered twice, once per Discord theme, so a role
+      // color can be judged against both backgrounds.
+      const PREVIEW_THEMES = ['dark', 'light'];
+
+      function previewUsernames() {
+        return PREVIEW_THEMES.map((t) => document.getElementById(`username-${t}`)).filter(Boolean);
+      }
+
+      function previewRoleIcons() {
+        return PREVIEW_THEMES.map((t) => document.getElementById(`role-icon-${t}`)).filter(Boolean);
+      }
+
+      function initializeHexInputs() {
+        bindHexInput("color-picker-hex", "color-picker", handleColorChange);
+        bindHexInput("gradient-color-1-hex", "gradient-color-1", handleGradientColorChange);
+        bindHexInput("gradient-color-2-hex", "gradient-color-2", handleGradientColorChange);
+
+        ["gradient-color-1", "gradient-color-2"].forEach((pickerId) => {
+          const track = () => { activeGradientPicker = pickerId; };
+          document.getElementById(pickerId)?.addEventListener("focus", track);
+          document.getElementById(pickerId)?.addEventListener("click", track);
+          document.getElementById(`${pickerId}-hex`)?.addEventListener("focus", track);
+        });
+
+        // Seed hex fields from whatever the swatches were initialized to.
+        ["color-picker", "gradient-color-1", "gradient-color-2"].forEach((swatchId) => {
+          const swatch = document.getElementById(swatchId);
+          const hexInput = document.getElementById(swatchId + "-hex");
+          if (swatch && swatch.jscolor && hexInput) {
+            hexInput.value = swatch.jscolor.toHEXString();
+          }
+        });
       }
 
       async function loadDominantColors() {
@@ -84,6 +180,7 @@
         // Insert after the color picker section
         const colorPickerSection = document.querySelector('.color-picker-section');
         colorPickerSection.insertAdjacentElement('afterend', loaderSection);
+        updateDominantColorsVisibility();
       }
 
       function hideDominantColorsLoader() {
@@ -125,32 +222,51 @@
         // Insert after the color picker section
         const colorPickerSection = document.querySelector('.color-picker-section');
         colorPickerSection.insertAdjacentElement('afterend', dominantColorsSection);
+        updateDominantColorsVisibility();
       }
 
       function handleColorChange(event) {
         const colorPicker = document.getElementById("color-picker");
-        document.getElementById("username").style.color = colorPicker.value;
+        const hex = colorPicker.jscolor.toHEXString();
+        previewUsernames().forEach((el) => {
+          el.classList.remove("gradient");
+          el.style.color = hex;
+        });
+
+        const hexInput = document.getElementById("color-picker-hex");
+        if (hexInput && document.activeElement !== hexInput) {
+          hexInput.value = hex;
+          hexInput.classList.remove("invalid");
+        }
       }
 
       function handleGradientColorChange(event) {
-        const primaryColor = document.getElementById("gradient-color-1").value;
-        const secondaryColor = document.getElementById("gradient-color-2").value;
-        
-        if (primaryColor && secondaryColor) {
-          const gradientPreview = document.getElementById("gradient-preview");
-          // Preview shows Discord's actual gradient order: secondary -> primary -> secondary
-          gradientPreview.style.background = `linear-gradient(to right, ${secondaryColor}, ${primaryColor}, ${secondaryColor})`;
-          gradientPreview.style.backgroundSize = '200% 100%';
-          gradientPreview.style.backgroundPosition = '-100% 0%';
-          
-          // Update username with Discord-style gradient
-          const username = document.getElementById("username");
-          username.classList.add("gradient");
-          
-          // Set CSS custom properties for the gradient colors (Discord's actual mapping)
-          document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
-          document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
+        const primaryColor = document.getElementById("gradient-color-1").jscolor.toHEXString();
+        const secondaryColor = document.getElementById("gradient-color-2").jscolor.toHEXString();
+
+        const primaryHexInput = document.getElementById("gradient-color-1-hex");
+        if (primaryHexInput && document.activeElement !== primaryHexInput) {
+          primaryHexInput.value = primaryColor;
+          primaryHexInput.classList.remove("invalid");
         }
+        const secondaryHexInput = document.getElementById("gradient-color-2-hex");
+        if (secondaryHexInput && document.activeElement !== secondaryHexInput) {
+          secondaryHexInput.value = secondaryColor;
+          secondaryHexInput.classList.remove("invalid");
+        }
+
+        const gradientPreview = document.getElementById("gradient-preview");
+        // Preview shows Discord's actual gradient order: secondary -> primary -> secondary
+        gradientPreview.style.background = `linear-gradient(to right, ${secondaryColor}, ${primaryColor}, ${secondaryColor})`;
+        gradientPreview.style.backgroundSize = '200% 100%';
+        gradientPreview.style.backgroundPosition = '-100% 0%';
+
+        // Update username with Discord-style gradient
+        previewUsernames().forEach((el) => el.classList.add("gradient"));
+
+        // Set CSS custom properties for the gradient colors (Discord's actual mapping)
+        document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
+        document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
       }
 
       function switchMode(mode) {
@@ -164,146 +280,118 @@
         document.getElementById("solid-color-group").style.display = mode === 'solid' ? 'block' : 'none';
         document.getElementById("gradient-color-group").style.display = mode === 'gradient' ? 'block' : 'none';
         
-        // Hide/show dominant colors
-        const dominantColorsSection = document.querySelector(".dominant-colors-section");
-        if (dominantColorsSection) {
-          dominantColorsSection.style.display = mode === 'solid' ? 'block' : 'none';
-        }
+        updateDominantColorsVisibility();
         
         // Reset username styling when switching modes
-        const username = document.getElementById("username");
+        const usernames = previewUsernames();
         if (mode === 'solid') {
-          username.classList.remove("gradient");
+          usernames.forEach((el) => el.classList.remove("gradient"));
           const colorPicker = document.getElementById("color-picker");
-          username.style.color = colorPicker.value;
+          usernames.forEach((el) => { el.style.color = colorPicker.jscolor.toHEXString(); });
         } else if (mode === 'gradient') {
-          username.classList.remove("gradient");
-          // Re-apply gradient if colors are selected
-          const primaryColor = document.getElementById("gradient-color-1").value;
-          const secondaryColor = document.getElementById("gradient-color-2").value;
-          if (primaryColor && secondaryColor) {
-            username.classList.add("gradient");
-            document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
-            document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
-          }
+          usernames.forEach((el) => el.classList.remove("gradient"));
+          // Re-apply gradient with the currently selected colors
+          const primaryColor = document.getElementById("gradient-color-1").jscolor.toHEXString();
+          const secondaryColor = document.getElementById("gradient-color-2").jscolor.toHEXString();
+          usernames.forEach((el) => el.classList.add("gradient"));
+          document.documentElement.style.setProperty('--custom-gradient-color-1', secondaryColor);
+          document.documentElement.style.setProperty('--custom-gradient-color-2', primaryColor);
         }
       }
 
+      // --- Status messages --------------------------------------------------
+
+      // Drives one of the .status-message blocks. `state` is "loading",
+      // "success", "error", or null to hide it.
+      function setStatus(statusId, state, text) {
+        const statusMessage = document.getElementById(statusId);
+        statusMessage.classList.remove("loading", "success", "error");
+        if (state) statusMessage.classList.add(state);
+
+        statusMessage.querySelector(".status-text").textContent = text || "";
+        statusMessage.style.display = state ? "flex" : "none";
+        statusMessage.querySelector(".status-spinner").style.display =
+          state === "loading" ? "block" : "none";
+        statusMessage.querySelector(".status-success-icon").style.display =
+          state === "success" ? "block" : "none";
+        statusMessage.querySelector(".status-error-icon").style.display =
+          state === "error" ? "block" : "none";
+      }
+
+      // Auto-hides after a delay. The timer is tracked per status block so a
+      // stale timer can't clear a newer message.
+      const statusTimers = {};
+
+      function setStatusTemporarily(statusId, state, text) {
+        setStatus(statusId, state, text);
+        clearTimeout(statusTimers[statusId]);
+        statusTimers[statusId] = setTimeout(
+          () => setStatus(statusId, null, ""),
+          state === "error" ? 5000 : 3000
+        );
+      }
+
+      // The endpoints answer with a plain-text reason, which is more useful
+      // than a generic per-status-code message.
+      async function readError(response, fallback) {
+        let message = "";
+        try {
+          message = (await response.text()).trim();
+        } catch (error) {
+          message = "";
+        }
+        if (!message) return fallback;
+        return message.length > 140 ? message.slice(0, 139) + "\u2026" : message;
+      }
+
+      // --- Applying a color -------------------------------------------------
+
       function setRoleColor(token, roleId, isGradient = false) {
-        console.log(`Setting ${isGradient ? 'gradient' : 'solid'} color`);
-        
-        // Get colors based on mode
         let primaryColor, secondaryColor;
         if (isGradient) {
-          primaryColor = document.getElementById("gradient-color-1").value;
-          secondaryColor = document.getElementById("gradient-color-2").value;
-          
-          // Validate gradient colors
-          if (!primaryColor || !secondaryColor) {
-            showStatusMessage("Please select both colors", "error");
-            return;
-          }
+          primaryColor = document.getElementById("gradient-color-1").jscolor.toHEXString();
+          secondaryColor = document.getElementById("gradient-color-2").jscolor.toHEXString();
         } else {
-          primaryColor = document.getElementById("color-picker").value;
+          primaryColor = document.getElementById("color-picker").jscolor.toHEXString();
         }
 
-        // Get UI elements
         const setButton = document.getElementById(isGradient ? "set-gradient-button" : "set-button");
-        const statusMessage = document.getElementById("setting-color");
-        const statusText = statusMessage.querySelector(".status-text");
+        const label = isGradient ? "Gradient" : "Color";
 
-        // Show loading state
-        statusMessage.classList.remove("success", "error");
-        statusMessage.classList.add("loading");
-        statusText.textContent = `Setting ${isGradient ? 'gradient' : 'color'}...`;
-        statusMessage.style.display = "flex";
-        
-        // Show spinner, hide other icons
-        statusMessage.querySelector('.status-spinner').style.display = 'block';
-        statusMessage.querySelector('.status-success-icon').style.display = 'none';
-        statusMessage.querySelector('.status-error-icon').style.display = 'none';
-
-        setButton.disabled = true;
+        setStatus("setting-color", "loading", `Setting ${label.toLowerCase()}...`);
+        requestInFlight = true;
         setButton.classList.add("loading");
+        refreshActionButtons();
 
-        // Prepare request body
-        const requestBody = {
-          token: token,
-          role_id: roleId,
-          color: primaryColor,
-        };
-        
-        // Add secondary color for gradients
+        const requestBody = { token: token, role_id: roleId, color: primaryColor };
         if (isGradient) {
           requestBody.secondary_color = secondaryColor;
         }
 
         fetch("/set_role_color", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody),
-        }).then((response) => {
-          setButton.disabled = false;
-          setButton.classList.remove("loading");
-          
-          if (response.ok) {
-            statusText.textContent = `${isGradient ? 'Gradient' : 'Color'} applied successfully!`;
-            statusMessage.classList.remove("loading");
-            statusMessage.classList.add("success");
-            
-            // Show success icon, hide spinner
-            statusMessage.querySelector('.status-spinner').style.display = 'none';
-            statusMessage.querySelector('.status-success-icon').style.display = 'block';
-            statusMessage.querySelector('.status-error-icon').style.display = 'none';
-            
-            setTimeout(() => {
-              statusMessage.style.display = "none";
-              statusMessage.classList.remove("success");
-            }, 3000);
-            return;
-          }
-
-          if (response.status === 400) {
-            statusText.textContent = "Invalid color format";
-          } else if (response.status === 403) {
-            statusText.textContent = "Invalid token or permission denied";
-          } else if (response.status === 422) {
-            statusText.textContent = "Invalid color format";
-          } else {
-            statusText.textContent = "Failed to set color";
-          }
-          
-          statusMessage.classList.remove("loading");
-          statusMessage.classList.add("error");
-          
-          // Show error icon, hide spinner
-          statusMessage.querySelector('.status-spinner').style.display = 'none';
-          statusMessage.querySelector('.status-success-icon').style.display = 'none';
-          statusMessage.querySelector('.status-error-icon').style.display = 'block';
-          
-          setTimeout(() => {
-            statusMessage.style.display = "none";
-            statusMessage.classList.remove("error");
-          }, 5000);
-        }).catch((error) => {
-          setButton.disabled = false;
-          setButton.classList.remove("loading");
-          statusText.textContent = "Network error occurred";
-          statusMessage.classList.remove("loading");
-          statusMessage.classList.add("error");
-          
-          // Show error icon, hide spinner
-          statusMessage.querySelector('.status-spinner').style.display = 'none';
-          statusMessage.querySelector('.status-success-icon').style.display = 'none';
-          statusMessage.querySelector('.status-error-icon').style.display = 'block';
-          
-          setTimeout(() => {
-            statusMessage.style.display = "none";
-            statusMessage.classList.remove("error");
-          }, 5000);
-        });
+        })
+          .then(async (response) => {
+            if (response.ok) {
+              setStatusTemporarily("setting-color", "success", `${label} applied successfully!`);
+              return;
+            }
+            setStatusTemporarily(
+              "setting-color",
+              "error",
+              await readError(response, `Failed to set ${label.toLowerCase()}`)
+            );
+          })
+          .catch(() => {
+            setStatusTemporarily("setting-color", "error", "Network error occurred");
+          })
+          .finally(() => {
+            requestInFlight = false;
+            setButton.classList.remove("loading");
+            startCooldown();
+          });
       }
 
       // Convenience functions for backward compatibility
@@ -315,26 +403,638 @@
         setRoleColor(token, roleId, true);
       }
 
-      // Helper function for status messages
-      function showStatusMessage(message, type) {
-        const statusMessage = document.getElementById("setting-color");
-        const statusText = statusMessage.querySelector(".status-text");
-        
-        statusMessage.classList.remove("loading", "success", "error");
-        statusMessage.classList.add(type);
-        statusText.textContent = message;
-        statusMessage.style.display = "flex";
-        
-        setTimeout(() => {
-          statusMessage.style.display = "none";
-        }, type === "error" ? 5000 : 3000);
+      // --- Soft keyboard ----------------------------------------------------
+
+      // Whether a dummy history entry is currently standing in for the open
+      // keyboard, so Back can dismiss it instead of leaving the page.
+      let keyboardHistoryPushed = false;
+      let keyboardReleaseTimer = null;
+
+      function initializeSoftKeyboard() {
+        const fields = document.querySelectorAll('input[type="text"], input[type="url"]');
+        // Only phones and tablets get this: on a desktop there's no keyboard to
+        // dismiss, and hijacking Back there would just break normal navigation.
+        const isTouch = window.matchMedia("(pointer: coarse)").matches;
+
+        fields.forEach((field) => {
+          field.addEventListener("focus", () => {
+            // Moving between fields keeps the keyboard up, so keep the entry.
+            clearTimeout(keyboardReleaseTimer);
+
+            if (isTouch && !keyboardHistoryPushed) {
+              history.pushState({ softKeyboard: true }, "");
+              keyboardHistoryPushed = true;
+            }
+
+            // Wait out the keyboard animation, then make sure the field the
+            // user is typing into hasn't been covered by it.
+            setTimeout(() => {
+              if (document.activeElement === field) {
+                field.scrollIntoView({ block: "center", behavior: "smooth" });
+              }
+            }, 350);
+          });
+
+          field.addEventListener("blur", () => {
+            // Deferred so focus moving to another field can cancel it.
+            keyboardReleaseTimer = setTimeout(releaseKeyboardHistory, 150);
+          });
+        });
+
+        window.addEventListener("popstate", () => {
+          // Not our entry: let the browser navigate as normal.
+          if (!keyboardHistoryPushed) return;
+
+          keyboardHistoryPushed = false;
+
+          // Back was pressed while typing. Drop the keyboard and stay put.
+          const active = document.activeElement;
+          if (active && typeof active.blur === "function") active.blur();
+        });
       }
 
+      // Removes the stand-in entry once the keyboard is genuinely gone, so Back
+      // doesn't need a second press to leave the page.
+      function releaseKeyboardHistory() {
+        if (!keyboardHistoryPushed) return;
+
+        keyboardHistoryPushed = false;
+        history.back();
+      }
+
+      // --- Tabs -------------------------------------------------------------
+
+      let currentTab = 'color';
+
+      function switchTab(tab) {
+        currentTab = tab;
+
+        document.getElementById("color-tab-btn").classList.toggle("active", tab === 'color');
+        document.getElementById("icon-tab-btn").classList.toggle("active", tab === 'icon');
+
+        document.getElementById("color-panel").hidden = tab !== 'color';
+        document.getElementById("icon-panel").hidden = tab !== 'icon';
+
+        updateDominantColorsVisibility();
+      }
+
+      function updateDominantColorsVisibility() {
+        const section = document.querySelector(".dominant-colors-section");
+        if (!section) return;
+        section.style.display = currentTab === 'color' ? 'block' : 'none';
+      }
+
+      // --- Role icon --------------------------------------------------------
+
+      // Discord's own ceiling for role icons; mirrored server-side.
+      const MAX_ICON_BYTES = 256 * 1024;
+
+      let currentIconSource = 'upload';
+      // What will be sent on "Set icon": {image} for a file, {url} for a link.
+      let pendingIcon = null;
+      // The role's existing icon, so a discarded preview can be reverted.
+      let originalRoleIconSrc = null;
+      // Debounce handle for the link field.
+      let iconUrlTimer = null;
+
+      // --- Action cooldown ---------------------------------------------------
+
+      // Every action edits the same role, so one shared cooldown covers them
+      // all. Keeps a stray double click from spending Discord's rate limit.
+      const ACTION_COOLDOWN_MS = 10000;
+
+      let cooldownUntil = 0;
+      let cooldownTicker = null;
+      let requestInFlight = false;
+
+      function cooldownRemaining() {
+        return Math.max(0, cooldownUntil - Date.now());
+      }
+
+      function startCooldown() {
+        cooldownUntil = Date.now() + ACTION_COOLDOWN_MS;
+        clearInterval(cooldownTicker);
+        cooldownTicker = setInterval(tickCooldown, 200);
+        tickCooldown();
+      }
+
+      function tickCooldown() {
+        const remaining = cooldownRemaining();
+        const notice = document.getElementById("cooldown-notice");
+
+        if (remaining > 0) {
+          notice.hidden = false;
+          notice.textContent = `Please wait ${Math.ceil(remaining / 1000)}s`;
+        } else {
+          clearInterval(cooldownTicker);
+          cooldownTicker = null;
+          notice.hidden = true;
+          notice.textContent = "";
+        }
+
+        refreshActionButtons();
+      }
+
+      // Single source of truth for every action button: blocked while a
+      // request is in flight or the cooldown is running, and each button also
+      // needs whatever it acts on to exist.
+      function refreshActionButtons() {
+        const blocked = requestInFlight || cooldownRemaining() > 0;
+
+        document.getElementById("set-button").disabled = blocked;
+        document.getElementById("set-gradient-button").disabled = blocked;
+        document.getElementById("set-icon-button").disabled = blocked || !pendingIcon;
+        document.getElementById("remove-icon-button").disabled = blocked || !originalRoleIconSrc;
+
+        // Editing the crop is local work, so only a live request blocks it.
+        document.getElementById("edit-crop-button").disabled =
+          requestInFlight || !originalRoleIconSrc;
+      }
+
+      function initializeRoleIcon() {
+        const [roleIcon] = previewRoleIcons();
+        originalRoleIconSrc = roleIcon && !roleIcon.hidden ? roleIcon.src : null;
+        refreshActionButtons();
+
+        // Purely cosmetic drag feedback. The file input covers the dropzone,
+        // so the browser handles the drop itself.
+        const dropzone = document.getElementById("icon-dropzone");
+        ["dragenter", "dragover"].forEach((name) =>
+          dropzone.addEventListener(name, () => dropzone.classList.add("dragging"))
+        );
+        ["dragleave", "drop"].forEach((name) =>
+          dropzone.addEventListener(name, () => dropzone.classList.remove("dragging"))
+        );
+      }
+
+      function switchIconSource(source) {
+        currentIconSource = source;
+
+        document.getElementById("icon-upload-btn").classList.toggle("active", source === 'upload');
+        document.getElementById("icon-link-btn").classList.toggle("active", source === 'link');
+
+        document.getElementById("icon-upload-group").hidden = source !== 'upload';
+        document.getElementById("icon-link-group").hidden = source !== 'link';
+
+        // Each source stages its own image; don't carry one over to the other.
+        clearTimeout(iconUrlTimer);
+        clearIconInputs();
+        closeCropper();
+        clearPendingIcon();
+      }
+
+      function handleIconFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+          closeCropper();
+          clearPendingIcon();
+          return;
+        }
+
+        if (file.type !== "image/png" && file.type !== "image/jpeg") {
+          rejectIcon("Only PNG and JPEG images are supported");
+          return;
+        }
+        // The crop is re-encoded before upload, so the source only needs to be
+        // something the browser can decode. Keep a generous ceiling anyway.
+        if (file.size > MAX_SOURCE_BYTES) {
+          rejectIcon(`That image is ${formatSize(file.size)}, over the 10 MB limit`);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => openCropper(reader.result, file.name);
+        reader.onerror = () => rejectIcon("That file couldn't be read");
+        reader.readAsDataURL(file);
+      }
+
+      // --- Cropping ---------------------------------------------------------
+
+      // Role icons render tiny, so 256px square is plenty of detail.
+      const CROP_SIZE = 256;
+      // What the browser is asked to decode, before cropping shrinks it.
+      const MAX_SOURCE_BYTES = 10 * 1024 * 1024;
+
+      // { image, name, coverScale, scale, offsetX, offsetY }, or null when the
+      // cropper is closed.
+      let cropState = null;
+
+      function openCropper(dataUri, name) {
+        const image = new Image();
+
+        image.onload = () => {
+          // The decoded bitmap outlives the URL, so it can be released now.
+          if (dataUri.startsWith("blob:")) URL.revokeObjectURL(dataUri);
+
+          if (!image.naturalWidth || !image.naturalHeight) {
+            rejectIcon("That image couldn't be read");
+            return;
+          }
+
+          // "cover" fills the square (the default framing); "contain" fits the
+          // whole image inside it, which is the far end of zooming out.
+          const coverScale = Math.max(
+            CROP_SIZE / image.naturalWidth,
+            CROP_SIZE / image.naturalHeight
+          );
+          const containScale = Math.min(
+            CROP_SIZE / image.naturalWidth,
+            CROP_SIZE / image.naturalHeight
+          );
+
+          cropState = {
+            image: image,
+            name: name,
+            coverScale: coverScale,
+            scale: coverScale,
+            offsetX: 0,
+            offsetY: 0,
+            // Whether the framing has been moved off its default. Only then
+            // is the result reported as a crop the user made.
+            adjusted: false,
+          };
+
+          const zoom = document.getElementById("crop-zoom");
+          zoom.min = containScale;
+          zoom.max = coverScale * 3;
+          zoom.step = (coverScale * 3 - containScale) / 200;
+          zoom.value = coverScale;
+
+          document.getElementById("crop-stage").hidden = false;
+          drawCrop();
+          commitCrop();
+        };
+
+        image.onerror = () => {
+          if (dataUri.startsWith("blob:")) URL.revokeObjectURL(dataUri);
+          rejectIcon("That image couldn't be read");
+        };
+        image.src = dataUri;
+      }
+
+      function closeCropper() {
+        cropState = null;
+        document.getElementById("crop-stage").hidden = true;
+      }
+
+      function drawCrop() {
+        if (!cropState) return;
+
+        const canvas = document.getElementById("crop-canvas");
+        const context = canvas.getContext("2d");
+        const { image, scale, offsetX, offsetY } = cropState;
+
+        const width = image.naturalWidth * scale;
+        const height = image.naturalHeight * scale;
+        const x = (CROP_SIZE - width) / 2 + offsetX;
+        const y = (CROP_SIZE - height) / 2 + offsetY;
+
+        context.clearRect(0, 0, CROP_SIZE, CROP_SIZE);
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
+        context.drawImage(image, x, y, width, height);
+      }
+
+      // Keeps the image from being dragged past its own edges. When it's
+      // smaller than the square in a dimension, it stays centered there.
+      function clampCropOffset() {
+        const { image, scale } = cropState;
+        const maxX = Math.max(0, (image.naturalWidth * scale - CROP_SIZE) / 2);
+        const maxY = Math.max(0, (image.naturalHeight * scale - CROP_SIZE) / 2);
+
+        cropState.offsetX = Math.min(maxX, Math.max(-maxX, cropState.offsetX));
+        cropState.offsetY = Math.min(maxY, Math.max(-maxY, cropState.offsetY));
+      }
+
+      function handleCropZoom() {
+        if (!cropState) return;
+
+        cropState.adjusted = true;
+        cropState.scale = parseFloat(document.getElementById("crop-zoom").value);
+        clampCropOffset();
+        drawCrop();
+        commitCrop();
+      }
+
+      function resetCrop() {
+        if (!cropState) return;
+
+        cropState.adjusted = false;
+        cropState.scale = cropState.coverScale;
+        cropState.offsetX = 0;
+        cropState.offsetY = 0;
+        document.getElementById("crop-zoom").value = cropState.coverScale;
+        drawCrop();
+        commitCrop();
+      }
+
+      function initializeCropper() {
+        const canvas = document.getElementById("crop-canvas");
+        let dragging = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        canvas.addEventListener("pointerdown", (event) => {
+          if (!cropState) return;
+          dragging = true;
+          canvas.classList.add("dragging");
+          canvas.setPointerCapture(event.pointerId);
+          lastX = event.clientX;
+          lastY = event.clientY;
+        });
+
+        canvas.addEventListener("pointermove", (event) => {
+          if (!dragging || !cropState) return;
+
+          // The canvas is displayed smaller than its 256px backing store, so
+          // pointer deltas have to be scaled into canvas space.
+          const rect = canvas.getBoundingClientRect();
+          const ratio = CROP_SIZE / rect.width;
+
+          cropState.adjusted = true;
+          cropState.offsetX += (event.clientX - lastX) * ratio;
+          cropState.offsetY += (event.clientY - lastY) * ratio;
+          lastX = event.clientX;
+          lastY = event.clientY;
+
+          clampCropOffset();
+          drawCrop();
+        });
+
+        const endDrag = (event) => {
+          if (!dragging) return;
+          dragging = false;
+          canvas.classList.remove("dragging");
+          try {
+            canvas.releasePointerCapture(event.pointerId);
+          } catch (error) {
+            /* pointer already released */
+          }
+          commitCrop();
+        };
+
+        canvas.addEventListener("pointerup", endDrag);
+        canvas.addEventListener("pointercancel", endDrag);
+      }
+
+      // Exports the cropped square and stages it as the icon to upload.
+      function commitCrop() {
+        if (!cropState) return;
+
+        const canvas = document.getElementById("crop-canvas");
+
+        // PNG preserves transparency but gets large for photographic images,
+        // so step down to JPEG only if PNG blows the limit.
+        let dataUri = canvas.toDataURL("image/png");
+        let label = "PNG";
+
+        if (dataUriBytes(dataUri) > MAX_ICON_BYTES) {
+          label = "JPEG";
+          for (const quality of [0.92, 0.85, 0.75, 0.6]) {
+            dataUri = canvas.toDataURL("image/jpeg", quality);
+            if (dataUriBytes(dataUri) <= MAX_ICON_BYTES) break;
+          }
+        }
+
+        const size = dataUriBytes(dataUri);
+        if (size > MAX_ICON_BYTES) {
+          // Leave the cropper up: zooming out usually gets it under the limit.
+          pendingIcon = null;
+          refreshActionButtons();
+          setStatusTemporarily(
+            "icon-status",
+            "error",
+            "That crop is too detailed to fit under 256 KB"
+          );
+          return;
+        }
+
+        // A log label only: true when the framing was moved off its default,
+        // not merely because the image passed through the cropper.
+        pendingIcon = { image: dataUri, cropped: cropState.adjusted };
+        showIconPreview(dataUri, `${CROP_SIZE}×${CROP_SIZE} ${label} · ${formatSize(size)}`);
+      }
+
+      // Byte length of a base64 data URI without materialising the bytes.
+      function dataUriBytes(dataUri) {
+        const base64 = dataUri.slice(dataUri.indexOf(",") + 1);
+        const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+        return Math.floor((base64.length * 3) / 4) - padding;
+      }
+
+      function handleIconUrl(token) {
+        clearTimeout(iconUrlTimer);
+
+        const url = document.getElementById("icon-url").value.trim();
+        if (!url) {
+          closeCropper();
+          clearPendingIcon();
+          return;
+        }
+
+        // Each attempt costs a server fetch, so wait for typing to settle.
+        document.getElementById("icon-preview-note").textContent = "Loading image...";
+        iconUrlTimer = setTimeout(() => loadImageIntoCropper(token, url, "Linked image"), 600);
+      }
+
+      function editCurrentCrop(token) {
+        if (!originalRoleIconSrc) {
+          setStatusTemporarily("icon-status", "error", "This role doesn't have an icon yet");
+          return;
+        }
+        loadImageIntoCropper(token, originalRoleIconSrc, "Current icon");
+      }
+
+      // Bumped per load so a slow fetch can't overwrite a newer one.
+      let iconLoadSequence = 0;
+
+      // Gets any image into the cropper. Reading pixels back out of a canvas
+      // is blocked for cross-origin images, so a remote one is pulled through
+      // /proxy_image and handed to the cropper as a same-origin blob.
+      async function loadImageIntoCropper(token, src, name) {
+        if (src.startsWith("data:") || src.startsWith("blob:")) {
+          openCropper(src, name);
+          return;
+        }
+
+        const sequence = ++iconLoadSequence;
+        const proxyUrl =
+          `/proxy_image?token=${encodeURIComponent(token)}&url=${encodeURIComponent(src)}`;
+
+        try {
+          const response = await fetch(proxyUrl);
+          if (sequence !== iconLoadSequence) return;
+
+          if (!response.ok) {
+            rejectIcon(await readError(response, "That image couldn't be loaded"));
+            return;
+          }
+
+          const blob = await response.blob();
+          if (sequence !== iconLoadSequence) return;
+
+          openCropper(URL.createObjectURL(blob), name);
+        } catch (error) {
+          if (sequence === iconLoadSequence) {
+            rejectIcon("That image couldn't be loaded");
+          }
+        }
+      }
+
+      function showIconPreview(src, note) {
+        const image = document.getElementById("icon-preview-img");
+        const empty = document.getElementById("icon-preview-empty");
+        const noteText = document.getElementById("icon-preview-note");
+
+        noteText.textContent = "Loading preview...";
+        document.getElementById("set-icon-button").disabled = true;
+
+        image.onload = () => {
+          image.hidden = false;
+          empty.hidden = true;
+          noteText.textContent =
+            note || `${image.naturalWidth}×${image.naturalHeight}`;
+          refreshActionButtons();
+          setMessageRoleIcon(src);
+        };
+
+        image.onerror = () => {
+          pendingIcon = null;
+          image.hidden = true;
+          empty.hidden = false;
+          noteText.textContent = "That image couldn't be loaded.";
+          refreshActionButtons();
+          setMessageRoleIcon(originalRoleIconSrc);
+        };
+
+        image.src = src;
+      }
+
+      function clearPendingIcon() {
+        pendingIcon = null;
+
+        const image = document.getElementById("icon-preview-img");
+        image.removeAttribute("src");
+        image.hidden = true;
+
+        document.getElementById("icon-preview-empty").hidden = false;
+        document.getElementById("icon-preview-note").textContent =
+          "Pick an image to see it on the message above.";
+        refreshActionButtons();
+
+        setMessageRoleIcon(originalRoleIconSrc);
+      }
+
+      function clearIconInputs() {
+        document.getElementById("icon-file").value = "";
+        document.getElementById("icon-url").value = "";
+      }
+
+      function rejectIcon(message) {
+        clearIconInputs();
+        closeCropper();
+        clearPendingIcon();
+        setStatusTemporarily("icon-status", "error", message);
+      }
+
+      // Mirrors the staged icon onto the Discord-style message preview.
+      function setMessageRoleIcon(src) {
+        previewRoleIcons().forEach((roleIcon) => {
+          if (src) {
+            roleIcon.src = src;
+            roleIcon.hidden = false;
+          } else {
+            roleIcon.removeAttribute("src");
+            roleIcon.hidden = true;
+          }
+        });
+      }
+
+      function formatSize(bytes) {
+        if (bytes < 1024) return `${bytes} B`;
+        return `${(bytes / 1024).toFixed(bytes < 10240 ? 1 : 0)} KB`;
+      }
+
+      function setRoleIcon(token, roleId) {
+        if (!pendingIcon) {
+          setStatusTemporarily("icon-status", "error", "Pick an image first");
+          return;
+        }
+        submitRoleIcon(token, roleId, pendingIcon, "Setting icon...", "Icon applied successfully!");
+      }
+
+      function removeRoleIcon(token, roleId) {
+        submitRoleIcon(token, roleId, { remove: true }, "Removing icon...", "Icon removed");
+      }
+
+      function submitRoleIcon(token, roleId, payload, loadingText, successText) {
+        setStatus("icon-status", "loading", loadingText);
+        requestInFlight = true;
+        refreshActionButtons();
+
+        fetch("/set_role_icon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(Object.assign({ token: token, role_id: roleId }, payload)),
+        })
+          .then(async (response) => {
+            if (!response.ok) {
+              setStatusTemporarily(
+                "icon-status",
+                "error",
+                await readError(response, "Failed to set icon")
+              );
+              return;
+            }
+
+            setStatusTemporarily("icon-status", "success", successText);
+
+            // The preview is now what the role actually has, so it becomes
+            // the thing a later discarded preview reverts to.
+            if (payload.remove) {
+              originalRoleIconSrc = null;
+              clearIconInputs();
+              closeCropper();
+              clearPendingIcon();
+            } else {
+              originalRoleIconSrc = document.getElementById("icon-preview-img").src;
+            }
+          })
+          .catch(() => setStatusTemporarily("icon-status", "error", "Network error occurred"))
+          .finally(() => {
+            requestInFlight = false;
+            startCooldown();
+          });
+      }
 
       function setDominantColor(color) {
+        if (currentMode === 'gradient') {
+          const picker = document.getElementById(activeGradientPicker);
+          picker.jscolor.fromString(`#${color}`);
+
+          const hexInput = document.getElementById(`${activeGradientPicker}-hex`);
+          if (hexInput) {
+            hexInput.value = picker.jscolor.toHEXString();
+            hexInput.classList.remove("invalid");
+          }
+
+          handleGradientColorChange();
+          return;
+        }
+
         const colorPicker = document.getElementById("color-picker");
         colorPicker.jscolor.fromString(`#${color}`);
-        document.getElementById("username").style.color = colorPicker.value;
+        const hex = colorPicker.jscolor.toHEXString();
+        previewUsernames().forEach((el) => {
+          el.classList.remove("gradient");
+          el.style.color = hex;
+        });
+
+        const hexInput = document.getElementById("color-picker-hex");
+        if (hexInput) {
+          hexInput.value = hex;
+          hexInput.classList.remove("invalid");
+        }
       }
     </script>
   </head>
@@ -343,8 +1043,8 @@
       <!-- Main Content -->
       <main class="main-content">
         <!-- Preview Section -->
-        <section class="preview-section">
-          <div class="preview-card">
+        {% macro message_preview(theme) %}
+          <div class="preview-card {{ theme }}">
             <div class="message-preview">
               <div class="profile-picture">
                 <img src="{{ avatar_url }}" alt="Profile picture" />
@@ -352,10 +1052,28 @@
               <div class="message-content">
                 <div class="message-header">
                   <div class="user-info">
-                    <span style="color: {{ color }};" id="username" class="username">{{ name }}</span>
-                    {% if role_icon != None %}
-                    <img src="{{ role_icon }}" class="role-icon" />
+                    <span style="color: {{ color }};" id="username-{{ theme }}" class="username">{{ name }}</span>
+                    {% if server_tag %}
+                    <span class="server-tag">
+                      {% if server_tag_badge %}
+                      <img
+                        class="server-tag-badge"
+                        src="{{ server_tag_badge }}"
+                        width="12"
+                        height="12"
+                        alt=""
+                      />
+                      {% endif %}
+                      <span class="server-tag-text">{{ server_tag }}</span>
+                    </span>
                     {% endif %}
+                    <img
+                      src="{{ role_icon if role_icon else '' }}"
+                      id="role-icon-{{ theme }}"
+                      class="role-icon"
+                      alt=""
+                      {% if not role_icon %}hidden{% endif %}
+                    />
                   </div>
                   <span class="timestamp">6:09 PM</span>
                 </div>
@@ -365,10 +1083,25 @@
               </div>
             </div>
           </div>
+        {% endmacro %}
+
+        <section class="preview-section">
+          {{ message_preview("dark") }}
+          {{ message_preview("light") }}
         </section>
 
+        <!-- Tabs -->
+        <nav class="tab-bar">
+          <button class="tab-btn active" id="color-tab-btn" onclick="switchTab('color')">
+            Color
+          </button>
+          <button class="tab-btn" id="icon-tab-btn" onclick="switchTab('icon')">
+            Role Icon
+          </button>
+        </nav>
+
         <!-- Color Picker Section -->
-        <section class="color-picker-section">
+        <section class="color-picker-section" id="color-panel">
           <div class="color-picker-card">
             <h2 class="section-title">Choose Your Color</h2>
             
@@ -387,22 +1120,35 @@
             
             <!-- Solid Color Mode -->
             <div class="color-input-group" id="solid-color-group">
-              <label for="color-picker" class="color-label">Custom Color</label>
+              <label for="color-picker-hex" class="color-label">Custom Color</label>
               <div class="color-input-wrapper">
-                <input
-                  class="color-input"
+                <button
+                  type="button"
+                  class="color-swatch"
                   id="color-picker"
-                  readonly
-                  data-jscolor="{ 
+                  title="Click to open color picker"
+                  aria-label="Custom color swatch"
+                  data-jscolor="{
                     onInput: handleColorChange,
                     backgroundColor: '#1e1e1e',
                     borderColor: '#404040',
                     borderRadius: 12,
                     width: 200,
-                    height: 50,
+                    height: 100,
                     borderWidth: 2,
                     shadow: false
                   }"
+                ></button>
+                <input
+                  class="color-hex-input"
+                  id="color-picker-hex"
+                  type="text"
+                  inputmode="text"
+                  maxlength="7"
+                  spellcheck="false"
+                  autocomplete="off"
+                  placeholder="#5865F2"
+                  aria-label="Custom color hex code"
                 />
                 <button
                   class="set-button"
@@ -421,40 +1167,70 @@
               </div>
               <div class="gradient-inputs">
                 <div class="gradient-color-input">
-                  <label for="gradient-color-1" class="color-label">Primary Color</label>
-                  <input
-                    class="color-input"
-                    id="gradient-color-1"
-                    readonly
-                    data-jscolor="{ 
-                      onInput: handleGradientColorChange,
-                      backgroundColor: '#1e1e1e',
-                      borderColor: '#404040',
-                      borderRadius: 12,
-                      width: 200,
-                      height: 50,
-                      borderWidth: 2,
-                      shadow: false
-                    }"
-                  />
+                  <label for="gradient-color-1-hex" class="color-label">Primary Color</label>
+                  <div class="color-input-wrapper">
+                    <button
+                      type="button"
+                      class="color-swatch"
+                      id="gradient-color-1"
+                      title="Click to open color picker"
+                      aria-label="Primary color swatch"
+                      data-jscolor="{
+                        onInput: handleGradientColorChange,
+                        backgroundColor: '#1e1e1e',
+                        borderColor: '#404040',
+                        borderRadius: 12,
+                        width: 200,
+                        height: 100,
+                        borderWidth: 2,
+                        shadow: false
+                      }"
+                    ></button>
+                    <input
+                      class="color-hex-input"
+                      id="gradient-color-1-hex"
+                      type="text"
+                      inputmode="text"
+                      maxlength="7"
+                      spellcheck="false"
+                      autocomplete="off"
+                      placeholder="#5865F2"
+                      aria-label="Primary color hex code"
+                    />
+                  </div>
                 </div>
                 <div class="gradient-color-input">
-                  <label for="gradient-color-2" class="color-label">Secondary Color</label>
-                  <input
-                    class="color-input"
-                    id="gradient-color-2"
-                    readonly
-                    data-jscolor="{ 
-                      onInput: handleGradientColorChange,
-                      backgroundColor: '#1e1e1e',
-                      borderColor: '#404040',
-                      borderRadius: 12,
-                      width: 200,
-                      height: 50,
-                      borderWidth: 2,
-                      shadow: false
-                    }"
-                  />
+                  <label for="gradient-color-2-hex" class="color-label">Secondary Color</label>
+                  <div class="color-input-wrapper">
+                    <button
+                      type="button"
+                      class="color-swatch"
+                      id="gradient-color-2"
+                      title="Click to open color picker"
+                      aria-label="Secondary color swatch"
+                      data-jscolor="{
+                        onInput: handleGradientColorChange,
+                        backgroundColor: '#1e1e1e',
+                        borderColor: '#404040',
+                        borderRadius: 12,
+                        width: 200,
+                        height: 100,
+                        borderWidth: 2,
+                        shadow: false
+                      }"
+                    ></button>
+                    <input
+                      class="color-hex-input"
+                      id="gradient-color-2-hex"
+                      type="text"
+                      inputmode="text"
+                      maxlength="7"
+                      spellcheck="false"
+                      autocomplete="off"
+                      placeholder="#FFFFFF"
+                      aria-label="Secondary color hex code"
+                    />
+                  </div>
                 </div>
               </div>
               <button
@@ -490,7 +1266,143 @@
           </div>
         </section>
 
+        <!-- Role Icon Section -->
+        <section class="icon-section" id="icon-panel" hidden>
+          <div class="icon-card">
+            <h2 class="section-title">Role Icon</h2>
+
+            <!-- Source Toggle -->
+            <div class="mode-toggle-group">
+              <label class="mode-label">Source</label>
+              <div class="mode-toggle">
+                <button class="mode-btn active" id="icon-upload-btn" onclick="switchIconSource('upload')">
+                  <span>Upload</span>
+                </button>
+                <button class="mode-btn" id="icon-link-btn" onclick="switchIconSource('link')">
+                  <span>Link</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload -->
+            <div class="icon-source-group" id="icon-upload-group">
+              <label class="color-label" for="icon-file">Image file</label>
+              <div class="dropzone" id="icon-dropzone">
+                <input
+                  type="file"
+                  id="icon-file"
+                  accept="image/png,image/jpeg"
+                  onchange="handleIconFile(event)"
+                />
+                <span class="dropzone-title">Drop an image here, or click to browse</span>
+                <span class="dropzone-hint">PNG or JPEG &middot; up to 256 KB</span>
+              </div>
+
+            </div>
+
+            <!-- Link -->
+            <div class="icon-source-group" id="icon-link-group" hidden>
+              <label class="color-label" for="icon-url">Image link</label>
+              <input
+                class="text-input"
+                id="icon-url"
+                type="url"
+                spellcheck="false"
+                autocomplete="off"
+                placeholder="https://example.com/icon.png"
+                oninput="handleIconUrl(`{{ token }}`)"
+              />
+              <p class="field-hint">
+                A direct link to a PNG or JPEG, up to 256 KB. Links that redirect
+                won't work, so paste the image's own address.
+              </p>
+            </div>
+
+            <!-- Crop stage, shared by every source -->
+            <div class="crop-stage" id="crop-stage" hidden>
+              <canvas
+                id="crop-canvas"
+                width="256"
+                height="256"
+                aria-label="Drag to reposition the image inside the icon"
+              ></canvas>
+              <div class="crop-controls">
+                <label class="color-label" for="crop-zoom">Zoom</label>
+                <input
+                  type="range"
+                  class="crop-zoom"
+                  id="crop-zoom"
+                  oninput="handleCropZoom()"
+                />
+                <button type="button" class="ghost-button" onclick="resetCrop()">
+                  Reset
+                </button>
+              </div>
+              <p class="field-hint">
+                Drag the image to reposition it. Zoom out to fit the whole
+                image inside the square, or in to crop tighter.
+              </p>
+            </div>
+
+            <!-- Preview -->
+            <div class="icon-preview">
+              <div class="icon-preview-frame">
+                <img id="icon-preview-img" alt="" hidden />
+                <span class="icon-preview-empty" id="icon-preview-empty">None</span>
+              </div>
+              <div class="icon-preview-meta">
+                <span class="icon-preview-label">Preview</span>
+                <span class="icon-preview-note" id="icon-preview-note">
+                  Pick an image to see it on the message above.
+                </span>
+              </div>
+            </div>
+
+            <div class="icon-actions">
+              <button
+                class="set-button"
+                id="set-icon-button"
+                onclick="setRoleIcon(`{{ token }}`, `{{ role_id }}`)"
+                disabled
+              >
+                <span class="button-text">Set icon</span>
+              </button>
+              <button
+                class="ghost-button"
+                id="edit-crop-button"
+                onclick="editCurrentCrop(`{{ token }}`)"
+              >
+                Edit current crop
+              </button>
+              <button
+                class="ghost-button"
+                id="remove-icon-button"
+                onclick="removeRoleIcon(`{{ token }}`, `{{ role_id }}`)"
+              >
+                Remove current icon
+              </button>
+            </div>
+
+            <!-- Status Message -->
+            <div class="status-container">
+              <div id="icon-status" class="status-message">
+                <div class="status-spinner"></div>
+                <svg class="status-success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                <svg class="status-error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                  <path d="M18 6L6 18"/>
+                  <path d="M6 6l12 12"/>
+                </svg>
+                <span class="status-text"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Dominant Colors Section will be loaded dynamically -->
+
+        <p class="cooldown-notice" id="cooldown-notice" hidden></p>
       </main>
     </div>
   </body>

@@ -10,7 +10,7 @@ from modules.role import Role
 from modules.name import Name
 from modules.icon import Icon
 
-from util import get_maaldar_user, configuration, select_one
+from util import get_maaldar_user, configuration, select_one, send_website_tip, reset_command_usage_counts
 
 from psycopg2.errors import UndefinedFunction
 
@@ -20,8 +20,9 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   def __init__(self, bot: commands.Bot) -> None:
     self.bot = bot
     self.delete_sessions.start()
+    self.clear_tip_counts.start()
 
-  color = app_commands.Group(name="color", description="For setting simple, gradient and holographic colors")
+  color = app_commands.Group(name="color", description="Set a solid or gradient color for your role")
   
   class NoCustomRole(app_commands.CheckFailure):
     pass
@@ -69,7 +70,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
     await Name.name(interaction=interaction, new_name=new_name)
 
   # Color Commands
-  @color.command(name="set", description="Sets a new color for your role. Leave options empty to set the default color")
+  @color.command(name="set", description="Set your role color by hex. Try /maaldar color-picker to pick it visually")
   @app_commands.describe(
     color="Primary color for your role (e.g #86ADEB)", 
     secondary_color="Secondary color for a gradient role style (e.g #AAAAAA)"
@@ -78,17 +79,12 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @has_custom_role()
   async def _color(self, interaction: discord.Interaction, color: str = None, secondary_color: str = None):
     await Color.color(interaction=interaction, color=color, secondary_color=secondary_color)
-
-  @color.command(name="holographic", description="Sets your role color to be holographic")
-  @app_commands.checks.has_any_role(*configuration["role_ids"])
-  @has_custom_role()
-  async def _holographic_color(self, interaction: discord.Interaction):
-    await Color.color(interaction=interaction, color="holographic")
+    await send_website_tip(interaction)
 
   # Icon Command
   @app_commands.command(
     name="icon", 
-    description="Sets an icon for your role. If the url and attachment are not provided, it removes the icon"
+    description="Set your role icon, or remove it by passing nothing. Upload and crop on /maaldar color-picker"
   )
   @app_commands.describe(
     attachment="Image to be used as the icon",
@@ -98,6 +94,7 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @has_custom_role()
   async def _icon(self, interaction: discord.Interaction, attachment: discord.Attachment = None, url: str = None) -> None:
     await Icon.icon(interaction=interaction, attachment=attachment, url=url)
+    await send_website_tip(interaction)
   
   # Assign Command
   @app_commands.command(
@@ -137,17 +134,18 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   "Palette Command"
   @app_commands.command(
     name="palette",
-    description="Gets a color palette for your profile picture"
+    description="Get colors from your profile picture. /maaldar color-picker applies them in one click"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
   async def _palette(self, interaction: discord.Interaction) -> None:
     await Palette.palette(interaction=interaction)
+    await send_website_tip(interaction)
 
   "Color Picker Command"
   @app_commands.command(
     name="color-picker",
-    description="Pick a color for your role from a colour picker"
+    description="Open the web editor: pick colors visually, upload and crop a role icon"
   )
   @app_commands.checks.has_any_role(*configuration["role_ids"])
   @has_custom_role()
@@ -166,7 +164,6 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   @_name.error
   @_role.error
   @_color.error
-  @_holographic_color.error
   @_icon.error
   @_assign.error
   @_unassign.error
@@ -214,6 +211,16 @@ class Maaldar(commands.GroupCog, name="maaldar"):
   
   @delete_sessions.before_loop
   async def before_delete_sessions(self):
+    await self.bot.wait_until_ready()
+
+  # The website tip counters are only a nudge, so they're kept in memory and
+  # dropped wholesale rather than grown for the lifetime of the process.
+  @tasks.loop(hours=24)
+  async def clear_tip_counts(self):
+    reset_command_usage_counts()
+
+  @clear_tip_counts.before_loop
+  async def before_clear_tip_counts(self):
     await self.bot.wait_until_ready()
   
 async def setup(bot: commands.Bot):
