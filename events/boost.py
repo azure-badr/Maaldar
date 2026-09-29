@@ -118,21 +118,21 @@ class BoostEvent(commands.Cog):
       """
       If member has stopped boosting
       This part handles the case when member has stopped boosting and
-      unless they are grandfathered (see util.is_old_maaldar), the role is removed
+      unless they have 365 days total or are an exception (see util.is_old_maaldar), the role is removed
       """
       print(f"[!] {member} has stopped boosting")
 
       self._credit_duration(member.id, before.premium_since)
       
       if is_old_maaldar(member.id):
-        print(f"[!] {member} is grandfathered. Keeping role...")
+        print(f"[!] {member} has 365 days or is an exception. Keeping role...")
         return
       
       data = select_one(f"SELECT role_id FROM Maaldar WHERE user_id = '{member.id}'")
       if data is None:
         return
       
-      print(f"[!] {member} is not grandfathered. Removing role...")
+      print(f"[!] {member} is under 365 days and not an exception. Removing role...")
       role_id = data[0]
       role = member.guild.get_role(int(role_id))
 

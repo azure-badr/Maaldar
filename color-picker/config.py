@@ -68,12 +68,17 @@ def execute_query(query, params):
 
 # Mirrors util.set_maaldar_role_info. The bot's util imports dependencies this
 # process doesn't have, so the snapshot write is duplicated rather than shared.
-# Same grandfather check as util.is_old_maaldar.
+# Same 365-day-or-exception check as util.is_old_maaldar.
+DAYS_IN_SECONDS_REQUIRED_FOR_ROLE = 31_536_000
+
 def set_maaldar_role_info(user_id, role_name, role_color):
-	grandfathered = select_one(
+	duration = select_one(
+		"SELECT boosting_since FROM MaaldarDuration WHERE user_id = %s", (str(user_id),)
+	)
+	exception = select_one(
 		"SELECT 1 FROM MaaldarGrandfathered WHERE user_id = %s", (str(user_id),)
 	)
-	if grandfathered is None:
+	if (duration is None or duration[0] < DAYS_IN_SECONDS_REQUIRED_FOR_ROLE) and exception is None:
 		return
 
 	existing = select_one(

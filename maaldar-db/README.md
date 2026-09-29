@@ -37,7 +37,7 @@ boosting_since: integer
 ```
 
 ### 3. `maaldarroles`
-**Purpose**: Stores a copy of each grandfathered member's role so it can be recreated when they rejoin or boost again.
+**Purpose**: Stores a copy of the role of each member who keeps it (365 days of boosting, or an exception in `maaldargrandfathered`) so it can be recreated when they rejoin or boost again.
 **Schema**: The required columns and their types are:
 ```
 user_id: text
@@ -46,7 +46,7 @@ role_color: text
 ```
 
 ### 4. `maaldargrandfathered`
-**Purpose**: Members who keep their role after they stop boosting. Filled once by `grandfather.sql` on 2026-09-29 with everyone who had boosted for 180 days by then. Reaching 180 days later does not add anyone.
+**Purpose**: Hand-picked exceptions who keep their role after they stop boosting despite having less than 365 days (the normal requirement, checked from `maaldarduration`). Rows are added by hand; `grandfather.sql` only creates the table.
 **Schema**: The required columns and their types are:
 ```
 user_id: text (primary key)
