@@ -221,14 +221,13 @@ def parse_role_colors(role_color_str):
 def get_maaldar_user(user_id):
   return select_one(f"SELECT * FROM Maaldar WHERE user_id = '{user_id}'")
 
-DAYS_IN_SECONDS_REQUIRED_FOR_ROLE = 15_552_000
-
+# Keeping the role after boosting stops used to be earned by 180 days of total
+# boosting. That was closed on 2026-09-29 so the guild stops creeping toward
+# Discord's 250-role cap: only users who had already passed 180 days then were
+# copied into MaaldarGrandfathered and keep the perk. MaaldarDuration is still
+# credited but no longer grants anything on its own.
 def is_old_maaldar(user_id):
-	data = select_one(f"SELECT boosting_since FROM MaaldarDuration WHERE user_id = '{user_id}'")
-	if data is None:
-		return False
-  
-	return data[0] >= DAYS_IN_SECONDS_REQUIRED_FOR_ROLE
+	return select_one(f"SELECT 1 FROM MaaldarGrandfathered WHERE user_id = '{user_id}'") is not None
 
 def set_maaldar_role_info(user_id, role_name, role_color):
 	if not is_old_maaldar(user_id): return

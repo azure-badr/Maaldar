@@ -17,6 +17,7 @@ The following tables are required for the application to function:
 1. maaldar
 2. maaldarduration
 3. maaldarroles
+4. maaldargrandfathered
 ```
 
 ### 1. `maaldar`
@@ -36,12 +37,19 @@ boosting_since: integer
 ```
 
 ### 3. `maaldarroles`
-**Purpose**: Stores the roles for members who have been boosting for 180 days.
+**Purpose**: Stores a copy of each grandfathered member's role so it can be recreated when they rejoin or boost again.
 **Schema**: The required columns and their types are:
 ```
 user_id: text
 role_name: text
 role_color: text
+```
+
+### 4. `maaldargrandfathered`
+**Purpose**: Members who keep their role after they stop boosting. Filled once by `grandfather.sql` on 2026-09-29 with everyone who had boosted for 180 days by then. Reaching 180 days later does not add anyone.
+**Schema**: The required columns and their types are:
+```
+user_id: text (primary key)
 ```
 
 Create each of the tables above with the specified columns and types.

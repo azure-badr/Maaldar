@@ -1,14 +1,11 @@
 import discord
 from discord.ext import commands
 
-from util import configuration, select_one, insert_query, delete_query, parse_role_colors
+from util import configuration, select_one, insert_query, delete_query, parse_role_colors, is_old_maaldar
 
 from datetime import datetime, timezone
 
 class BoostEvent(commands.Cog):
-  # Seconds in 180 days
-  DAYS_IN_SECONDS_REQUIRED_FOR_ROLE = 15_552_000
-
   def __init__(self, bot):
     self.bot = bot
   
@@ -121,25 +118,21 @@ class BoostEvent(commands.Cog):
       """
       If member has stopped boosting
       This part handles the case when member has stopped boosting and
-      if the member has not boosted for 180 days total, the role is removed
+      unless they are grandfathered (see util.is_old_maaldar), the role is removed
       """
       print(f"[!] {member} has stopped boosting")
 
       self._credit_duration(member.id, before.premium_since)
       
-      boosting_since = select_one(
-        f"SELECT boosting_since FROM MaaldarDuration WHERE user_id = '{member.id}'"
-      )
-      
-      if boosting_since[0] >= self.DAYS_IN_SECONDS_REQUIRED_FOR_ROLE:
-        print(f"[!] {member} has boosted for {self.DAYS_IN_SECONDS_REQUIRED_FOR_ROLE} days. Keeping role...")
+      if is_old_maaldar(member.id):
+        print(f"[!] {member} is grandfathered. Keeping role...")
         return
       
       data = select_one(f"SELECT role_id FROM Maaldar WHERE user_id = '{member.id}'")
       if data is None:
         return
       
-      print(f"[!] {member} has not boosted for {self.DAYS_IN_SECONDS_REQUIRED_FOR_ROLE} days. Removing role...")
+      print(f"[!] {member} is not grandfathered. Removing role...")
       role_id = data[0]
       role = member.guild.get_role(int(role_id))
 
